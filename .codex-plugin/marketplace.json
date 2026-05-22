@@ -8,7 +8,7 @@
       "name": "agentmemory",
       "source": {
         "source": "git-subdir",
-        "url": "https://github.com/rohitg00/agentmemory.git",
+        "url": "https://github.com/NightWatcher314/agentmemory.git",
         "path": "./plugin",
         "ref": "main"
       },

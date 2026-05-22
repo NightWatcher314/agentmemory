@@ -11,33 +11,29 @@
 </p>
 
 <p align="center">
-  <a href="https://trendshift.io/repositories/25123" target="_blank"><img src="https://trendshift.io/api/badge/repositories/25123" alt="rohitg00/agentmemory | Trendshift" width="250" height="55"/></a>
+  <a href="https://trendshift.io/repositories/25123" target="_blank"><img src="https://trendshift.io/api/badge/repositories/25123" alt="NightWatcher314/agentmemory | Trendshift" width="250" height="55"/></a>
 </p>
 
 <p align="center">
-  <a href="https://www.star-history.com/?repos=rohitg00%2Fagentmemory&type=date&legend=top-left">
+  <a href="https://www.star-history.com/?repos=NightWatcher314%2Fagentmemory&type=date&legend=top-left">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=rohitg00/agentmemory&type=date&theme=dark&legend=top-left" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=rohitg00/agentmemory&type=date&legend=top-left" />
-      <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=rohitg00/agentmemory&type=date&legend=top-left" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=NightWatcher314/agentmemory&type=date&theme=dark&legend=top-left" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=NightWatcher314/agentmemory&type=date&legend=top-left" />
+      <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=NightWatcher314/agentmemory&type=date&legend=top-left" />
     </picture>
   </a>
 </p>
 
 <p align="center">
-  <a href="https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2"><img src="https://img.shields.io/badge/Viral%20GitHub%20Gist-1200%20stars%20%2F%20172%20forks-FF6B35?style=for-the-badge&logo=github&logoColor=white&labelColor=1a1a1a" alt="Design doc: 1200 stars / 172 forks on the gist" /></a>
+  <em>The design extends Karpathy's LLM Wiki pattern with confidence scoring, lifecycle, knowledge graphs, and hybrid search: agentmemory is the implementation.</em>
 </p>
 
 <p align="center">
-  <em>The gist extends Karpathy's LLM Wiki pattern with confidence scoring, lifecycle, knowledge graphs, and hybrid search: agentmemory is the implementation.</em>
-</p>
-
-<p align="center">
-  <a href="https://www.npmjs.com/package/@agentmemory/agentmemory"><img src="https://img.shields.io/npm/v/@agentmemory/agentmemory?color=CB3837&label=npm&style=for-the-badge&logo=npm" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/@agentmemory/agentmemory"><img src="https://img.shields.io/npm/dm/@agentmemory/agentmemory?color=CB3837&label=downloads&style=for-the-badge&logo=npm" alt="npm downloads" /></a>
-  <a href="https://github.com/rohitg00/agentmemory/actions"><img src="https://img.shields.io/github/actions/workflow/status/rohitg00/agentmemory/ci.yml?label=tests&style=for-the-badge&logo=github" alt="CI" /></a>
-  <a href="https://github.com/rohitg00/agentmemory/blob/main/LICENSE"><img src="https://img.shields.io/github/license/rohitg00/agentmemory?color=blue&style=for-the-badge" alt="License" /></a>
-  <a href="https://github.com/rohitg00/agentmemory/stargazers"><img src="https://img.shields.io/github/stars/rohitg00/agentmemory?style=for-the-badge&color=yellow&logo=github" alt="Stars" /></a>
+  <a href="https://www.npmjs.com/package/@nightwatcher314/agentmemory"><img src="https://img.shields.io/npm/v/@nightwatcher314/agentmemory?color=CB3837&label=npm&style=for-the-badge&logo=npm" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/@nightwatcher314/agentmemory"><img src="https://img.shields.io/npm/dm/@nightwatcher314/agentmemory?color=CB3837&label=downloads&style=for-the-badge&logo=npm" alt="npm downloads" /></a>
+  <a href="https://github.com/NightWatcher314/agentmemory/actions"><img src="https://img.shields.io/github/actions/workflow/status/NightWatcher314/agentmemory/ci.yml?label=tests&style=for-the-badge&logo=github" alt="CI" /></a>
+  <a href="https://github.com/NightWatcher314/agentmemory/blob/main/LICENSE"><img src="https://img.shields.io/github/license/NightWatcher314/agentmemory?color=blue&style=for-the-badge" alt="License" /></a>
+  <a href="https://github.com/NightWatcher314/agentmemory/stargazers"><img src="https://img.shields.io/github/stars/NightWatcher314/agentmemory?style=for-the-badge&color=yellow&logo=github" alt="Stars" /></a>
 </p>
 
 <p align="center">
@@ -73,21 +69,21 @@
 ## Install
 
 ```bash
-npm install -g @agentmemory/agentmemory          # once — bare `agentmemory` on PATH
+npm install -g @nightwatcher314/agentmemory     # once — bare `agentmemory` on PATH
 # If you hit EACCES on macOS/Linux system Node installs, retry with:
-# sudo npm install -g @agentmemory/agentmemory
-agentmemory                                      # start the memory server on :3111
-agentmemory demo                                 # seed sample sessions + prove recall
-agentmemory connect claude-code                  # wire your agent (also: codex, cursor, gemini-cli, ...)
+# sudo npm install -g @nightwatcher314/agentmemory
+agentmemory                                  # start the memory server on :3111
+agentmemory demo                             # seed sample sessions + prove recall
+agentmemory connect claude-code              # wire your agent (also: codex, cursor, gemini-cli, ...)
 ```
 
 Or via `npx` (no install):
 
 ```bash
-npx @agentmemory/agentmemory
+npx @nightwatcher314/agentmemory
 ```
 
-Heads-up — npx caches per version. If a bare `npx @agentmemory/agentmemory` serves an older release, force the latest with `npx -y @agentmemory/agentmemory@latest`, or clear the cache once with `rm -rf ~/.npm/_npx` (macOS/Linux; on Windows delete `%LOCALAPPDATA%\npm-cache\_npx`). The first npx run from v0.9.16+ prompts to install globally inline so the bare `agentmemory` command works everywhere afterwards.
+Heads-up — npx caches per version. If a bare `npx @nightwatcher314/agentmemory` serves an older release, force the latest with `npx -y @nightwatcher314/agentmemory@latest`, or clear the cache once with `rm -rf ~/.npm/_npx` (macOS/Linux; on Windows delete `%LOCALAPPDATA%\npm-cache\_npx`). The first npx run from v0.9.16+ prompts to install globally inline so the bare `agentmemory` command works everywhere afterwards.
 
 Full options at [Quick Start](#quick-start) below. Agent-specific wiring at [Works with every agent](#works-with-every-agent).
 
@@ -195,10 +191,10 @@ You explain the same architecture every session. You re-discover the same bugs. 
 **What changes:** Session 1 you set up JWT auth. Session 2 you ask for rate limiting. The agent already knows your auth uses jose middleware in `src/middleware/auth.ts`, your tests cover token validation, and you chose jose over jsonwebtoken for Edge compatibility. No re-explaining. No copy-pasting. The agent just *knows*.
 
 ```bash
-npx @agentmemory/agentmemory
+npx @nightwatcher314/agentmemory
 ```
 
-> **New in v0.9.0** — Landing site at [agent-memory.dev](https://agent-memory.dev), filesystem connector (`@agentmemory/fs-watcher`), standalone MCP now proxies to the running server so hooks and the viewer agree, audit policy codified across every delete path, health stops flagging `memory_critical` on tiny Node processes. Full notes in [CHANGELOG.md](CHANGELOG.md#090--2026-04-18).
+> **New in v0.9.0** — Landing site at [agent-memory.dev](https://agent-memory.dev), filesystem connector, standalone MCP now proxies to the running server so hooks and the viewer agree, audit policy codified across every delete path, health stops flagging `memory_critical` on tiny Node processes. Full notes in [CHANGELOG.md](CHANGELOG.md#090--2026-04-18).
 
 ---
 
@@ -347,10 +343,10 @@ Compatibility: this release targets stable `iii-sdk` `^0.11.0` and iii-engine v0
 
 ```bash
 # Terminal 1: start the server
-npx @agentmemory/agentmemory
+npx @nightwatcher314/agentmemory
 
 # Terminal 2: seed sample data and see recall in action
-npx @agentmemory/agentmemory demo
+npx @nightwatcher314/agentmemory demo
 ```
 
 `demo` seeds 3 realistic sessions (JWT auth, N+1 query fix, rate limiting) and runs semantic searches against them. You'll see it find "N+1 query fix" when you search "database performance optimization" — keyword matching can't do that.
@@ -359,12 +355,12 @@ Open `http://localhost:3113` to watch the memory build live.
 
 ### Recommended: install globally
 
-`npx` caches per-version. If you ran `npx @agentmemory/agentmemory@0.9.14` last week, a bare `npx @agentmemory/agentmemory` may serve the stale 0.9.14 from `~/.npm/_npx/`, not the latest release. Install once and the bare `agentmemory` command works everywhere:
+`npx` caches per-version. If you ran `npx @nightwatcher314/agentmemory@0.9.14` last week, a bare `npx @nightwatcher314/agentmemory` may serve the stale 0.9.14 from `~/.npm/_npx/`, not the latest release. Install once and the bare `agentmemory` command works everywhere:
 
 ```bash
-npm install -g @agentmemory/agentmemory
+npm install -g @nightwatcher314/agentmemory
 # If you hit EACCES on macOS/Linux system Node installs, retry with:
-# sudo npm install -g @agentmemory/agentmemory
+# sudo npm install -g @nightwatcher314/agentmemory
 agentmemory                    # start the server (same as the npx form)
 agentmemory stop               # tear it down
 agentmemory remove             # uninstall everything we created
@@ -375,8 +371,8 @@ agentmemory doctor             # interactive diagnostics + fix prompts
 From v0.9.16 onward, the first npx run prompts you to install globally inline — answer `Y` once and you're set. If you skip, fall back to either of these for a fresh fetch:
 
 ```bash
-npx -y @agentmemory/agentmemory@latest                 # forces latest from npm (cross-platform)
-rm -rf ~/.npm/_npx && npx @agentmemory/agentmemory     # macOS/Linux only (POSIX shell)
+npx -y @nightwatcher314/agentmemory@latest                 # forces latest from npm (cross-platform)
+rm -rf ~/.npm/_npx && npx @nightwatcher314/agentmemory     # macOS/Linux only (POSIX shell)
 ```
 
 On Windows / PowerShell, the equivalent cache clear is `Remove-Item -Recurse -Force "$env:LOCALAPPDATA\npm-cache\_npx"` — the `npx -y ...@latest` form above is the cross-platform option.
@@ -389,10 +385,10 @@ Already have older Claude Code JSONL transcripts you want to bring in?
 
 ```bash
 # Import everything under the default ~/.claude/projects
-npx @agentmemory/agentmemory import-jsonl
+npx @nightwatcher314/agentmemory import-jsonl
 
 # Or import a single file
-npx @agentmemory/agentmemory import-jsonl ~/.claude/projects/-my-project/abc123.jsonl
+npx @nightwatcher314/agentmemory import-jsonl ~/.claude/projects/-my-project/abc123.jsonl
 ```
 
 Imported sessions show up in the Replay picker alongside native ones. Under the hood each entry routes through the `mem::replay::load`, `mem::replay::sessions`, and `mem::replay::import-jsonl` iii functions — no side-channel servers.
@@ -402,7 +398,7 @@ Imported sessions show up in the Replay picker alongside native ones. Under the 
 Use the maintenance command when you intentionally want to update your local runtime:
 
 ```bash
-npx @agentmemory/agentmemory upgrade
+npx @nightwatcher314/agentmemory upgrade
 ```
 
 Warning: this command mutates the current workspace/runtime. It can update JavaScript dependencies, may run `cargo install iii-engine --force`, and may pull Docker images.
@@ -412,7 +408,7 @@ Implementation details live in `src/cli.ts` (see `runUpgrade` around the `src/cl
 ### Claude Code (one block, paste it)
 
 ```
-Install agentmemory: run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server. Then run `/plugin marketplace add rohitg00/agentmemory` and `/plugin install agentmemory` — the plugin registers all 12 hooks, 4 skills, AND auto-wires the `@agentmemory/mcp` stdio server via its `.mcp.json`, so you get 53 MCP tools (memory_smart_search, memory_save, memory_sessions, memory_governance_delete, etc.) without any extra config step. Verify with `curl http://localhost:3111/agentmemory/health`. The real-time viewer is at http://localhost:3113.
+Install agentmemory: run `npx @nightwatcher314/agentmemory` in a separate terminal to start the memory server. Then run `/plugin marketplace add NightWatcher314/agentmemory` and `/plugin install agentmemory` — the plugin registers all 12 hooks, 10 skills, AND auto-wires the `@nightwatcher314/agentmemory-mcp` stdio server via its `.mcp.json`, so you get 53 MCP tools (memory_smart_search, memory_save, memory_sessions, memory_commit_lookup, etc.) without any extra config step. Verify with `curl http://localhost:3111/agentmemory/health`. The real-time viewer is at http://localhost:3113.
 ```
 
 For remote or protected deployments, launch Claude Code with `AGENTMEMORY_URL` and `AGENTMEMORY_SECRET` set. The plugin passes both values through to its bundled MCP server; when `AGENTMEMORY_URL` is empty, the MCP shim uses `http://localhost:3111`.
@@ -421,16 +417,16 @@ For remote or protected deployments, launch Claude Code with `AGENTMEMORY_URL` a
 
 ```bash
 # 1. start the memory server in a separate terminal
-npx @agentmemory/agentmemory
+npx @nightwatcher314/agentmemory
 
 # 2. register the agentmemory marketplace and install the plugin
-codex plugin marketplace add rohitg00/agentmemory
+codex plugin marketplace add NightWatcher314/agentmemory
 codex plugin install agentmemory
 ```
 
 The Codex plugin ships from the same `plugin/` directory as the Claude Code plugin. It registers:
 
-- `@agentmemory/mcp` as an MCP server (proxies all 51 tools when `AGENTMEMORY_URL` points at a running agentmemory server; falls back to 7 tools locally when no server is reachable)
+- `@nightwatcher314/agentmemory-mcp` as an MCP server (proxies all 51 tools when `AGENTMEMORY_URL` points at a running agentmemory server; falls back to 7 tools locally when no server is reachable)
 - 6 lifecycle hooks: `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `PreCompact`, `Stop`
 - 4 skills: `/recall`, `/remember`, `/session-history`, `/forget`
 
@@ -452,13 +448,13 @@ This adds an idempotent block to `~/.codex/hooks.json` referencing absolute path
 <summary><b>OpenClaw (paste this prompt)</b></summary>
 
 ```
-Install agentmemory for OpenClaw. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to my OpenClaw MCP config so agentmemory is available with all 51 memory tools:
+Install agentmemory for OpenClaw. Run `npx @nightwatcher314/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to my OpenClaw MCP config so agentmemory is available with all 51 memory tools:
 
 {
   "mcpServers": {
     "agentmemory": {
       "command": "npx",
-      "args": ["-y", "@agentmemory/mcp"],
+      "args": ["-y", "@nightwatcher314/agentmemory-mcp"],
       "env": {
         "AGENTMEMORY_URL": "http://localhost:3111"
       }
@@ -477,12 +473,12 @@ Full guide: [`integrations/openclaw/`](integrations/openclaw/)
 <summary><b>Hermes Agent (paste this prompt)</b></summary>
 
 ```
-Install agentmemory for Hermes. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to ~/.hermes/config.yaml so Hermes can use agentmemory as an MCP server with all 51 memory tools:
+Install agentmemory for Hermes. Run `npx @nightwatcher314/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to ~/.hermes/config.yaml so Hermes can use agentmemory as an MCP server with all 51 memory tools:
 
 mcp_servers:
   agentmemory:
     command: npx
-    args: ["-y", "@agentmemory/mcp"]
+    args: ["-y", "@nightwatcher314/agentmemory-mcp"]
 
 memory:
   provider: agentmemory
@@ -496,14 +492,14 @@ Full guide: [`integrations/hermes/`](integrations/hermes/)
 
 ### Other agents
 
-Start the memory server: `npx @agentmemory/agentmemory`
+Start the memory server: `npx @nightwatcher314/agentmemory`
 
 The agentmemory entry is the **same MCP server block** across every host that uses the `mcpServers` shape (Cursor, Claude Desktop, Cline, Roo Code, Windsurf, Gemini CLI, OpenClaw):
 
 ```json
 "agentmemory": {
   "command": "npx",
-  "args": ["-y", "@agentmemory/mcp"],
+  "args": ["-y", "@nightwatcher314/agentmemory-mcp"],
   "env": {
     "AGENTMEMORY_URL": "${AGENTMEMORY_URL}",
     "AGENTMEMORY_SECRET": "${AGENTMEMORY_SECRET}"
@@ -519,11 +515,11 @@ The agentmemory entry is the **same MCP server block** across every host that us
 | **Claude Desktop** | `claude_desktop_config.json` (Application Support) | Merge into `mcpServers`. Restart Claude Desktop after editing. |
 | **Cline / Roo Code / Kilo Code** | Cline MCP settings (Settings UI → MCP Servers → Edit) | Same `mcpServers` block. |
 | **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | Same `mcpServers` block. |
-| **Gemini CLI** | `~/.gemini/settings.json` | `gemini mcp add agentmemory npx -y @agentmemory/mcp --scope user` (auto-merges). |
+| **Gemini CLI** | `~/.gemini/settings.json` | `gemini mcp add agentmemory npx -y @nightwatcher314/agentmemory-mcp --scope user` (auto-merges). |
 | **OpenClaw** | OpenClaw MCP config | Same `mcpServers` block, or use the deeper [memory plugin](integrations/openclaw/). |
-| **Codex CLI (MCP only)** | `.codex/config.toml` | TOML shape: `codex mcp add agentmemory -- npx -y @agentmemory/mcp`, or add `[mcp_servers.agentmemory]` manually. |
-| **Codex CLI (full plugin)** | Codex plugin marketplace | `codex plugin marketplace add rohitg00/agentmemory` then `codex plugin install agentmemory`. Registers MCP + 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, Stop) + 4 skills. On Codex Desktop, also run `agentmemory connect codex --with-hooks` until [openai/codex#16430](https://github.com/openai/codex/issues/16430) lands — plugin hooks are currently silent there. |
-| **OpenCode (MCP only)** | `opencode.json` | Different shape — top-level `mcp` key, command as array: `{"mcp": {"agentmemory": {"type": "local", "command": ["npx", "-y", "@agentmemory/mcp"], "enabled": true}}}`. |
+| **Codex CLI (MCP only)** | `.codex/config.toml` | TOML shape: `codex mcp add agentmemory -- npx -y @nightwatcher314/agentmemory-mcp`, or add `[mcp_servers.agentmemory]` manually. |
+| **Codex CLI (full plugin)** | Codex plugin marketplace | `codex plugin marketplace add NightWatcher314/agentmemory` then `codex plugin install agentmemory`. Registers MCP + 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, Stop) + 10 skills. On Codex Desktop, also run `agentmemory connect codex --with-hooks` until [openai/codex#16430](https://github.com/openai/codex/issues/16430) lands — plugin hooks are currently silent there. |
+| **OpenCode (MCP only)** | `opencode.json` | Different shape — top-level `mcp` key, command as array: `{"mcp": {"agentmemory": {"type": "local", "command": ["npx", "-y", "@nightwatcher314/agentmemory-mcp"], "enabled": true}}}`. |
 | **OpenCode (full plugin)** | `plugin/opencode/` | 22 auto-capture hooks covering session lifecycle, messages, tools, errors. Two slash commands (`/recall`, `/remember`). Copy `plugin/opencode/` into your OpenCode workspace and add the plugin entry to `opencode.json`. See [`plugin/opencode/README.md`](plugin/opencode/README.md) for the full hook table + gap analysis. |
 | **pi** | `~/.pi/agent/extensions/agentmemory` | Copy [`integrations/pi`](integrations/pi/) and restart pi. |
 | **Hermes Agent** | `~/.hermes/config.yaml` | Use the deeper [memory provider plugin](integrations/hermes/) with `memory.provider: agentmemory`. |
@@ -531,7 +527,7 @@ The agentmemory entry is the **same MCP server block** across every host that us
 | **Aider** | n/a | Talk to the REST API directly: `curl -X POST http://localhost:3111/agentmemory/smart-search -d '{"query": "auth"}'`. |
 | **Any agent (32+)** | n/a | `npx skillkit install agentmemory` auto-detects the host and merges. |
 
-**Sandboxed MCP clients** (Flatpak / Snap / restrictive containers) that can't reach the host's `localhost`: also set `"AGENTMEMORY_FORCE_PROXY": "1"` in the `env` block, and point `AGENTMEMORY_URL` at a route the sandbox can actually reach (e.g. your LAN IP). See [#234](https://github.com/rohitg00/agentmemory/issues/234) for the diagnostic walkthrough.
+**Sandboxed MCP clients** (Flatpak / Snap / restrictive containers) that can't reach the host's `localhost`: also set `"AGENTMEMORY_FORCE_PROXY": "1"` in the `env` block, and point `AGENTMEMORY_URL` at a route the sandbox can actually reach (e.g. your LAN IP). See [#234](https://github.com/NightWatcher314/agentmemory/issues/234) for the diagnostic walkthrough.
 
 ### Programmatic access (Python / Rust / Node)
 
@@ -560,7 +556,7 @@ Worked example: [`examples/python/`](examples/python/) (quickstart + observation
 ### From source
 
 ```bash
-git clone https://github.com/rohitg00/agentmemory.git && cd agentmemory
+git clone https://github.com/NightWatcher314/agentmemory.git && cd agentmemory
 npm install && npm run build && npm start
 ```
 
@@ -574,7 +570,13 @@ Install `iii-engine` manually. **agentmemory currently pins `iii-engine` to `v0.
 - **Linux arm64:** swap for `aarch64-unknown-linux-gnu`
 - **Windows:** download `iii-x86_64-pc-windows-msvc.zip` from [iii-hq/iii releases v0.11.2](https://github.com/iii-hq/iii/releases/tag/iii%2Fv0.11.2), extract `iii.exe`, add to PATH
 
-Or use Docker (the bundled `docker-compose.yml` pulls `iiidev/iii:0.11.2`). Full docs: [iii.dev/docs](https://iii.dev/docs).
+Or use Docker. The repository-root `docker-compose.yml` is for local source builds: it uses `Dockerfile.local`, follows the same install/build/package flow as CI (`npm install --package-lock-only`, `npm ci`, `npm run build`, `npm pack`), then installs that local tarball into the runtime image alongside `iiidev/iii:0.11.2`.
+
+```bash
+docker compose up -d --build agentmemory
+```
+
+Use this path when validating unpublished viewer or TypeScript changes in a container. The managed-host templates under `deploy/` intentionally keep using Dockerfiles that install the published `@nightwatcher314/agentmemory` package from npm. Full iii-engine docs: [iii.dev/docs](https://iii.dev/docs).
 
 ### Windows
 
@@ -596,7 +598,7 @@ iii --version
 # Should print: 0.11.2
 
 # 5. Then run agentmemory as usual:
-npx -y @agentmemory/agentmemory
+npx -y @nightwatcher314/agentmemory
 ```
 
 **Option B — Docker Desktop:**
@@ -605,18 +607,18 @@ npx -y @agentmemory/agentmemory
 # 1. Install Docker Desktop for Windows
 # 2. Start Docker Desktop and make sure the engine is running
 # 3. Run agentmemory — it will auto-start the bundled compose file:
-npx -y @agentmemory/agentmemory
+npx -y @nightwatcher314/agentmemory
 ```
 
 **Option C — standalone MCP only (no engine):** if you only need the MCP tools for your agent and don't need the REST API, viewer, or cron jobs, skip the engine entirely:
 
 ```powershell
-npx -y @agentmemory/agentmemory mcp
+npx -y @nightwatcher314/agentmemory mcp
 # or via the shim package:
-npx -y @agentmemory/mcp
+npx -y @nightwatcher314/agentmemory-mcp
 ```
 
-**Diagnostics for Windows:** if `npx @agentmemory/agentmemory` fails, re-run with `--verbose` to see the actual engine stderr. Common failure modes:
+**Diagnostics for Windows:** if `npx @nightwatcher314/agentmemory` fails, re-run with `--verbose` to see the actual engine stderr. Common failure modes:
 
 | Symptom | Fix |
 |---|---|
@@ -632,7 +634,7 @@ npx -y @agentmemory/mcp
 <h2 id="deploy">Deploy</h2>
 
 One-click templates for managed hosts. Each one ships a self-contained
-Dockerfile that pulls `@agentmemory/agentmemory` from npm and copies
+Dockerfile that pulls `@nightwatcher314/agentmemory` from npm and copies
 the iii engine binary in from the official `iiidev/iii` Docker Hub
 image — no pre-built agentmemory image required. Persistent storage
 mounts at `/data`; the first-boot entrypoint overwrites the
@@ -642,8 +644,8 @@ the HMAC secret, then drops privileges from `root` to `node` via
 `gosu` before exec'ing the agentmemory CLI.
 
 <p>
-  <a href="https://fly.io/launch?repo=https://github.com/rohitg00/agentmemory&path=deploy/fly"><img src="https://img.shields.io/badge/Deploy%20to-fly.io-8b5cf6?style=for-the-badge&logo=fly.io&logoColor=white" alt="Deploy to fly.io" /></a>
-  <a href="https://railway.com/new/template?template=https%3A%2F%2Fgithub.com%2Frohitg00%2Fagentmemory&rootDirectory=deploy%2Frailway"><img src="https://img.shields.io/badge/Deploy%20to-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" alt="Deploy to Railway" /></a>
+  <a href="https://fly.io/launch?repo=https://github.com/NightWatcher314/agentmemory&path=deploy/fly"><img src="https://img.shields.io/badge/Deploy%20to-fly.io-8b5cf6?style=for-the-badge&logo=fly.io&logoColor=white" alt="Deploy to fly.io" /></a>
+  <a href="https://railway.com/new/template?template=https%3A%2F%2Fgithub.com%2FNightWatcher314%2Fagentmemory&rootDirectory=deploy%2Frailway"><img src="https://img.shields.io/badge/Deploy%20to-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" alt="Deploy to Railway" /></a>
 </p>
 
 Render's one-click deploy button requires `render.yaml` at the repository root, which we deliberately keep clean. Use the Render Blueprint flow documented in [`deploy/render/`](./deploy/render/README.md) to point at the in-repo blueprint manually.
@@ -657,9 +659,6 @@ cost floors) live in [`deploy/`](./deploy/README.md):
   volume in the dashboard.
 - [`deploy/render`](./deploy/render/README.md) — Blueprint flow,
   automatic disk snapshots on paid plans.
-- [`deploy/coolify`](./deploy/coolify/README.md) — self-hosted on your
-  own VPS via [Coolify](https://coolify.io/self-hosted); same Docker
-  Compose stack, you own the host and the data.
 
 Only port `3111` is published. The viewer on `3113` stays bound to
 loopback inside the container — every template's README documents the
@@ -807,7 +806,7 @@ npm install @xenova/transformers
 
 53 tools, 6 resources, 3 prompts, and 4 skills — the most comprehensive MCP memory toolkit for any agent.
 
-> **MCP shim vs full server:** the published `@agentmemory/mcp` package is a thin shim. It exposes the full 51-tool surface **only when it can reach a running agentmemory server** via `AGENTMEMORY_URL` (proxy mode). With no server reachable, the shim falls back to a 7-tool local set (`memory_save`, `memory_recall`, `memory_smart_search`, `memory_sessions`, `memory_export`, `memory_audit`, `memory_governance_delete`). The `AGENTMEMORY_TOOLS=core|all` env var is a *server-side* flag — setting it in the shim's `env` block has no effect. If you see only 7 tools in Cursor / OpenCode / Gemini CLI, start `npx @agentmemory/agentmemory` (or the Docker stack) and set `AGENTMEMORY_URL=http://localhost:3111`.
+> **MCP shim vs full server:** the published `@nightwatcher314/agentmemory-mcp` package is a thin shim. It exposes the full 51-tool surface **only when it can reach a running agentmemory server** via `AGENTMEMORY_URL` (proxy mode). With no server reachable, the shim falls back to a 7-tool local set (`memory_save`, `memory_recall`, `memory_smart_search`, `memory_sessions`, `memory_export`, `memory_audit`, `memory_governance_delete`). The `AGENTMEMORY_TOOLS=core|all` env var is a *server-side* flag — setting it in the shim's `env` block has no effect. If you see only 7 tools in Cursor / OpenCode / Gemini CLI, start `npx @nightwatcher314/agentmemory` (or the Docker stack) and set `AGENTMEMORY_URL=http://localhost:3111`.
 
 ### 51 Tools
 
@@ -890,8 +889,8 @@ npm install @xenova/transformers
 Run without the full server — for any MCP client. Either of these works:
 
 ```bash
-npx -y @agentmemory/agentmemory mcp   # canonical (always available)
-npx -y @agentmemory/mcp                # shim package alias
+npx -y @nightwatcher314/agentmemory mcp   # canonical (always available)
+npx -y @nightwatcher314/agentmemory-mcp                # shim package alias
 ```
 
 Or add to your agent's MCP config:
@@ -902,7 +901,7 @@ Most agents (Cursor, Claude Desktop, Cline, Roo Code, Windsurf, Gemini CLI):
   "mcpServers": {
     "agentmemory": {
       "command": "npx",
-      "args": ["-y", "@agentmemory/mcp"],
+      "args": ["-y", "@nightwatcher314/agentmemory-mcp"],
       "env": {
         "AGENTMEMORY_URL": "http://localhost:3111"
       }
@@ -919,7 +918,7 @@ OpenCode (`opencode.json`):
   "mcp": {
     "agentmemory": {
       "type": "local",
-      "command": ["npx", "-y", "@agentmemory/mcp"],
+      "command": ["npx", "-y", "@nightwatcher314/agentmemory-mcp"],
       "enabled": true
     }
   },
@@ -944,7 +943,7 @@ Auto-starts on port `3113`. Live observation stream, session explorer, memory br
 open http://localhost:3113
 ```
 
-The viewer server binds to `127.0.0.1` by default. The REST-served `/agentmemory/viewer` endpoint follows the normal `AGENTMEMORY_SECRET` bearer-token rules. CSP headers use a per-response script nonce and disable inline handler attributes (`script-src-attr 'none'`).
+The viewer server binds to `127.0.0.1` by default. Set `AGENTMEMORY_VIEWER_PASSWORD` to require a browser login on the standalone viewer port. The REST-served `/agentmemory/viewer` endpoint follows the normal `AGENTMEMORY_SECRET` bearer-token rules. CSP headers use a per-response script nonce and disable inline handler attributes (`script-src-attr 'none'`).
 
 ---
 
@@ -1269,6 +1268,25 @@ npm run test:integration  # API tests (requires running services)
 ```
 
 **Prerequisites:** Node.js >= 20, [iii-engine](https://iii.dev/docs) or Docker
+
+### Local Docker Source Builds
+
+For container-based development, use the repository-root Compose file:
+
+```bash
+docker compose build agentmemory
+docker compose up -d agentmemory
+```
+
+`Dockerfile.local` deliberately mirrors the CI/publish path instead of installing dependencies ad hoc:
+
+1. Generate a temporary lockfile with `npm install --package-lock-only --legacy-peer-deps`.
+2. Install with `npm ci --legacy-peer-deps`.
+3. Build with `npm run build`, which copies `src/viewer/index.html` into `dist/viewer/`.
+4. Package the local workspace with `npm pack`.
+5. Install that local tarball in the runtime image, reusing the shared deployment entrypoint.
+
+This keeps local Docker validation close to the published package layout while still picking up unpublished source changes. Do not use `Dockerfile.local` for managed-host templates; those should continue to install the npm-published version from `deploy/*/Dockerfile`.
 
 <h2 id="license"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/tags/light/section-license.svg"><img src="assets/tags/section-license.svg" alt="License" height="32" /></picture></h2>
 

@@ -149,6 +149,6 @@ describe("Codex marketplace.json (.codex-plugin/marketplace.json at repo root)",
     expect(entry.name).toBe("agentmemory");
     expect(entry.source.source).toBe("git-subdir");
     expect(entry.source.path).toBe("./plugin");
-    expect(entry.source.url).toMatch(/rohitg00\/agentmemory/);
+    expect(entry.source.url).toMatch(/NightWatcher314\/agentmemory/);
   });
 });

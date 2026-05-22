@@ -95,13 +95,13 @@ async function probe(url: string): Promise<boolean> {
     const res = await livezProbe(url, timeout, authHeader());
     if (!res.ok) {
       process.stderr.write(
-        `[@agentmemory/mcp] livez probe ${url}/agentmemory/livez -> ${res.status ?? "?"} ${res.statusText ?? ""}; falling back to local InMemoryKV (set AGENTMEMORY_FORCE_PROXY=1 to skip the probe)\n`,
+        `[@nightwatcher314/agentmemory-mcp] livez probe ${url}/agentmemory/livez -> ${res.status ?? "?"} ${res.statusText ?? ""}; falling back to local InMemoryKV (set AGENTMEMORY_FORCE_PROXY=1 to skip the probe)\n`,
       );
     }
     return res.ok;
   } catch (err) {
     process.stderr.write(
-      `[@agentmemory/mcp] livez probe ${url}/agentmemory/livez failed in ${timeout}ms: ${err instanceof Error ? err.message : String(err)}; falling back to local InMemoryKV (set AGENTMEMORY_FORCE_PROXY=1 to skip the probe, or raise AGENTMEMORY_PROBE_TIMEOUT_MS)\n`,
+      `[@nightwatcher314/agentmemory-mcp] livez probe ${url}/agentmemory/livez failed in ${timeout}ms: ${err instanceof Error ? err.message : String(err)}; falling back to local InMemoryKV (set AGENTMEMORY_FORCE_PROXY=1 to skip the probe, or raise AGENTMEMORY_PROBE_TIMEOUT_MS)\n`,
     );
     return false;
   }
@@ -129,7 +129,7 @@ export async function resolveHandle(): Promise<Handle> {
     const up = skipProbe ? true : await probe(url);
     if (skipProbe) {
       process.stderr.write(
-        `[@agentmemory/mcp] AGENTMEMORY_FORCE_PROXY set; skipping livez probe and trusting ${url}\n`,
+        `[@nightwatcher314/agentmemory-mcp] AGENTMEMORY_FORCE_PROXY set; skipping livez probe and trusting ${url}\n`,
       );
     }
     if (up) {

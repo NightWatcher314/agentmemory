@@ -1,25 +1,34 @@
 ---
 name: remember
-description: Explicitly save an insight, decision, or learning to agentmemory's long-term storage. Use when the user says "remember this", "save this", or wants to preserve knowledge for future sessions.
-argument-hint: "[what to remember]"
-user-invocable: true
+description: Save durable user preferences, agent workflow preferences, cross-project lessons, and private/local environment notes to agentmemory. Use when the user says "remember this", "save this", or wants future sessions to preserve a preference. If the content is project-specific development knowledge, route it to project docs instead of long-term agentmemory unless the user explicitly asks for an agentmemory pointer.
 ---
 
-The user wants to save this to long-term memory: $ARGUMENTS
+The user wants to preserve: $ARGUMENTS
 
-Use the `memory_save` MCP tool (provided by the agentmemory server that this plugin wires up automatically via `.mcp.json`) to persist it.
+Classify before writing:
 
-Steps:
-1. Analyze what the user wants to remember — pull out the core insight, decision, or fact.
-2. Extract 2-5 searchable `concepts` (lowercased keyword phrases) that capture what the memory is about. Prefer specific terms over generic ones (`"jwt-refresh-rotation"` beats `"auth"`).
-3. Extract any relevant `files` — absolute or repo-relative paths the memory references.
-4. Call `memory_save` with the fields:
-   - `content` — the full text to remember (preserve the user's phrasing as much as possible)
-   - `concepts` — the extracted concept list
-   - `files` — the extracted file list (empty array if none apply)
-5. Confirm to the user that the memory was saved and show the concepts you tagged so they know what terms will retrieve it later.
+Save to `agentmemory` when the content is:
+- User preference: communication style, tool preference, default behavior, personal workflow.
+- Agent workflow preference: how the agent should act across sessions/projects.
+- Cross-project lesson or reusable heuristic.
+- Private/local environment note that should not be committed to a repo, e.g. token handling policy, local machine paths, deployment credentials metadata. Never store raw secrets.
+- A pointer telling future agents where project docs live, when useful.
 
-If `memory_save` isn't available, the stdio MCP shim didn't start — tell the user to:
-1. Run `/plugin list` in Claude Code and confirm `agentmemory` shows as enabled.
-2. Restart Claude Code (the plugin's `.mcp.json` is only read on startup).
-3. Check `/mcp` to see whether the `agentmemory` MCP server is connected.
+Do not save only to `agentmemory` when the content is project-specific development knowledge:
+- Architecture decisions, domain model, API contracts, data model, deployment/runbook facts.
+- Project TODOs, implementation plans, feature decisions, test strategy.
+- Anything another contributor should review in git.
+
+For project-specific content, use the `document-project-memory` skill/workflow: write or update local docs such as `CONTEXT.md`, `docs/adr/`, `docs/runbook.md`, or `docs/todo.md`. Optionally save a short pointer in agentmemory only when the user explicitly asks for cross-session discoverability or when future agents need to know which doc is authoritative.
+
+When saving to `agentmemory`:
+1. Extract the core insight, decision, or preference.
+2. Extract 2-5 searchable `concepts` as lowercased keyword phrases.
+3. Extract relevant `files` only as pointers; use absolute or repo-relative paths.
+4. Choose a memory `type` when the tool supports it: `preference` for user/agent preferences, `workflow` for process, `fact` for environment notes, `architecture` only for cross-project architecture patterns.
+5. Call `memory_save` with `content`, `concepts`, and `files`.
+6. Confirm what was saved and why it belongs in agentmemory rather than docs.
+
+If classification is ambiguous, ask one concise question: "Should this be a user/agent preference in agentmemory, or a project fact in docs?"
+
+If `memory_save` isn't available, tell the user the agentmemory MCP server is unavailable and give the usual plugin/MCP restart checks.

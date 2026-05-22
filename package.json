@@ -1,6 +1,6 @@
 {
-  "name": "@agentmemory/agentmemory",
-  "version": "0.9.21",
+  "name": "@nightwatcher314/agentmemory",
+  "version": "0.9.21-nightwatcher.0",
   "description": "Persistent memory for AI coding agents, powered by iii-engine's three primitives",
   "type": "module",
   "main": "dist/index.mjs",
@@ -55,7 +55,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rohitg00/agentmemory"
+    "url": "git+https://github.com/NightWatcher314/agentmemory.git"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.142",

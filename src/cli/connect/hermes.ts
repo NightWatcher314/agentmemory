@@ -6,7 +6,7 @@ import type { ConnectAdapter, ConnectOptions, ConnectResult } from "./types.js";
 
 const HERMES_DIR = join(homedir(), ".hermes");
 const HERMES_CONFIG = join(HERMES_DIR, "config.yaml");
-const DOCS = "https://github.com/rohitg00/agentmemory/tree/main/integrations/hermes";
+const DOCS = "https://github.com/NightWatcher314/agentmemory/tree/main/integrations/hermes";
 
 export const adapter: ConnectAdapter = {
   name: "hermes",
@@ -30,7 +30,7 @@ export const adapter: ConnectAdapter = {
         "  mcp_servers:",
         "    agentmemory:",
         "      command: npx",
-        '      args: ["-y", "@agentmemory/mcp"]',
+        '      args: ["-y", "@nightwatcher314/agentmemory-mcp"]',
         "",
         "  memory:",
         "    provider: agentmemory",

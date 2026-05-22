@@ -8,7 +8,7 @@
 
 <p align="center">
   <strong>Your pi sessions remember everything. No more re-explaining.</strong><br/>
-  <sub>Persistent cross-session memory via <a href="https://github.com/rohitg00/agentmemory">agentmemory</a> — shared with Claude Code, Codex CLI, Gemini CLI, Hermes, OpenClaw, and more.</sub>
+  <sub>Persistent cross-session memory via <a href="https://github.com/NightWatcher314/agentmemory">agentmemory</a> — shared with Claude Code, Codex CLI, Gemini CLI, Hermes, OpenClaw, and more.</sub>
 </p>
 
 ---
@@ -18,7 +18,7 @@
 Start the agentmemory server in a separate terminal:
 
 ```bash
-npx @agentmemory/agentmemory
+npx @nightwatcher314/agentmemory
 ```
 
 Copy this folder into pi's global extensions directory:

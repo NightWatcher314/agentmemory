@@ -105,7 +105,7 @@ describe("agentmemory connect — claude-code adapter (mock filesystem)", () => 
 
     const config = JSON.parse(readFileSync(join(tmpHome, ".claude.json"), "utf-8"));
     expect(config.mcpServers.agentmemory.command).toBe("npx");
-    expect(config.mcpServers.agentmemory.args).toContain("@agentmemory/mcp");
+    expect(config.mcpServers.agentmemory.args).toContain("@nightwatcher314/agentmemory-mcp");
     expect(config.mcpServers.other.command).toBe("x");
 
     const second = await a.install({ dryRun: false, force: false });
@@ -139,7 +139,7 @@ describe("agentmemory connect — claude-code adapter (mock filesystem)", () => 
       join(tmpHome, ".claude.json"),
       JSON.stringify({
         mcpServers: {
-          agentmemory: { command: "npx", args: ["-y", "@agentmemory/mcp"] },
+          agentmemory: { command: "npx", args: ["-y", "@nightwatcher314/agentmemory-mcp"] },
         },
       }),
     );

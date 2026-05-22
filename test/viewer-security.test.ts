@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, afterEach } from "vitest";
 import type { AddressInfo } from "node:net";
 import { request as httpRequest } from "node:http";
 import { renderViewerDocument } from "../src/viewer/document.js";
@@ -133,6 +133,9 @@ describe("viewer request handler DNS rebinding defence (e2e)", () => {
   afterAll(async () => {
     for (const c of cleanups) await c();
   });
+  afterEach(() => {
+    delete process.env.AGENTMEMORY_VIEWER_PASSWORD;
+  });
 
   async function spinUpViewer(): Promise<{ port: number }> {
     // Start on port 0 so the OS assigns a free port; passing a real port
@@ -154,6 +157,11 @@ describe("viewer request handler DNS rebinding defence (e2e)", () => {
     port: number,
     hostHeader: string,
     pathname = "/agentmemory/livez",
+    opts: {
+      method?: string;
+      body?: string;
+      headers?: Record<string, string>;
+    } = {},
   ): Promise<{ status: number; body: string; headers: Record<string, string | string[] | undefined> }> {
     return new Promise((resolve, reject) => {
       const req = httpRequest(
@@ -161,8 +169,8 @@ describe("viewer request handler DNS rebinding defence (e2e)", () => {
           host: "127.0.0.1",
           port,
           path: pathname,
-          method: "GET",
-          headers: { Host: hostHeader },
+          method: opts.method || "GET",
+          headers: { Host: hostHeader, ...(opts.headers || {}) },
         },
         (res) => {
           let body = "";
@@ -179,6 +187,7 @@ describe("viewer request handler DNS rebinding defence (e2e)", () => {
         },
       );
       req.on("error", reject);
+      if (opts.body) req.write(opts.body);
       req.end();
     });
   }
@@ -222,5 +231,56 @@ describe("viewer request handler DNS rebinding defence (e2e)", () => {
     // Sanity-check the artwork: rounded dark tile + green "AM" lettering.
     expect(res.body).toContain('fill="#111111"');
     expect(res.body).toContain(">AM<");
+  });
+
+  it("serves a login page instead of the viewer when AGENTMEMORY_VIEWER_PASSWORD is set", async () => {
+    process.env.AGENTMEMORY_VIEWER_PASSWORD = "test-password";
+    const { port } = await spinUpViewer();
+    const res = await request(port, `localhost:${port}`, "/");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toContain("agentmemory viewer");
+    expect(res.body).toContain("Enter the viewer password");
+    expect(res.headers["content-security-policy"]).toContain("script-src 'nonce-");
+  });
+
+  it("rejects viewer proxy requests before login when AGENTMEMORY_VIEWER_PASSWORD is set", async () => {
+    process.env.AGENTMEMORY_VIEWER_PASSWORD = "test-password";
+    const { port } = await spinUpViewer();
+    const res = await request(port, `localhost:${port}`, "/agentmemory/livez");
+
+    expect(res.status).toBe(401);
+    expect(res.body).toContain("viewer login required");
+  });
+
+  it("sets an HttpOnly viewer session cookie after a correct password", async () => {
+    process.env.AGENTMEMORY_VIEWER_PASSWORD = "test-password";
+    const { port } = await spinUpViewer();
+
+    const denied = await request(port, `localhost:${port}`, "/viewer/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "wrong" }),
+    });
+    expect(denied.status).toBe(401);
+
+    const login = await request(port, `localhost:${port}`, "/viewer/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "test-password" }),
+    });
+    expect(login.status).toBe(204);
+    const setCookie = login.headers["set-cookie"];
+    const cookie = Array.isArray(setCookie) ? setCookie[0] : String(setCookie || "");
+    expect(cookie).toContain("agentmemory_viewer_session=");
+    expect(cookie).toContain("HttpOnly");
+    expect(cookie).toContain("SameSite=Lax");
+
+    const sessionCookie = cookie.split(";")[0];
+    const viewer = await request(port, `localhost:${port}`, "/", {
+      headers: { Cookie: sessionCookie },
+    });
+    expect(viewer.status === 200 || viewer.status === 404).toBe(true);
+    expect(viewer.body).not.toContain("Enter the viewer password");
   });
 });

@@ -4,7 +4,7 @@ agentmemory memory provider for Hermes Agent.
 Drop this folder into ~/.hermes/plugins/agentmemory/
 or install via: hermes plugin install agentmemory
 
-Requires agentmemory server running: npx @agentmemory/agentmemory
+Requires agentmemory server running: npx @nightwatcher314/agentmemory
 """
 
 from __future__ import annotations

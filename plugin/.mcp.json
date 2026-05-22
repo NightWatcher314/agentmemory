@@ -2,7 +2,7 @@
   "mcpServers": {
     "agentmemory": {
       "command": "npx",
-      "args": ["-y", "@agentmemory/mcp"],
+      "args": ["-y", "@nightwatcher314/agentmemory-mcp"],
       "env": {
         "AGENTMEMORY_URL": "${AGENTMEMORY_URL}",
         "AGENTMEMORY_SECRET": "${AGENTMEMORY_SECRET}"

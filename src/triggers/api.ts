@@ -75,7 +75,7 @@ function graphDisabledResponse(): Response {
     error: "Knowledge graph not enabled",
     flag: "GRAPH_EXTRACTION_ENABLED",
     enableHow: "Set GRAPH_EXTRACTION_ENABLED=true and restart. Requires an LLM provider key.",
-    docsHref: "https://github.com/rohitg00/agentmemory#knowledge-graph",
+    docsHref: "https://github.com/NightWatcher314/agentmemory#knowledge-graph",
   });
 }
 
@@ -84,7 +84,7 @@ function consolidationDisabledResponse(): Response {
     error: "Consolidation pipeline not enabled",
     flag: "CONSOLIDATION_ENABLED",
     enableHow: "Set CONSOLIDATION_ENABLED=true and restart. Requires an LLM provider key.",
-    docsHref: "https://github.com/rohitg00/agentmemory#consolidation",
+    docsHref: "https://github.com/NightWatcher314/agentmemory#consolidation",
   });
 }
 
@@ -169,7 +169,7 @@ export function registerApiTriggers(
           needsLlm: true,
           description: "Extracts entities and relations from observations into a knowledge graph.",
           enableHow: "Set GRAPH_EXTRACTION_ENABLED=true and provide an LLM key, then restart.",
-          docsHref: "https://github.com/rohitg00/agentmemory#knowledge-graph",
+          docsHref: "https://github.com/NightWatcher314/agentmemory#knowledge-graph",
         },
         {
           key: "CONSOLIDATION_ENABLED",
@@ -180,7 +180,7 @@ export function registerApiTriggers(
           needsLlm: true,
           description: "Periodically summarizes sessions into semantic facts + procedures.",
           enableHow: "Set CONSOLIDATION_ENABLED=true and provide an LLM key, then restart.",
-          docsHref: "https://github.com/rohitg00/agentmemory#consolidation",
+          docsHref: "https://github.com/NightWatcher314/agentmemory#consolidation",
         },
         {
           key: "AGENTMEMORY_AUTO_COMPRESS",
@@ -191,7 +191,7 @@ export function registerApiTriggers(
           needsLlm: true,
           description: "Every observation is compressed by the LLM for richer summaries (costs tokens). OFF uses zero-LLM synthetic compression.",
           enableHow: "Set AGENTMEMORY_AUTO_COMPRESS=true and provide an LLM key.",
-          docsHref: "https://github.com/rohitg00/agentmemory/issues/138",
+          docsHref: "https://github.com/NightWatcher314/agentmemory/issues/138",
         },
         {
           key: "AGENTMEMORY_INJECT_CONTEXT",
@@ -202,7 +202,7 @@ export function registerApiTriggers(
           needsLlm: false,
           description: "Hooks write recalled context into Claude Code's conversation. OFF captures in the background without injecting.",
           enableHow: "Set AGENTMEMORY_INJECT_CONTEXT=true and restart.",
-          docsHref: "https://github.com/rohitg00/agentmemory/issues/143",
+          docsHref: "https://github.com/NightWatcher314/agentmemory/issues/143",
         },
       ];
       return {

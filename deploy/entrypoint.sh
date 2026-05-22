@@ -18,10 +18,44 @@ set -eu
 DATA_DIR="${AGENTMEMORY_DATA_DIR:-/data}"
 HMAC_FILE="${AGENTMEMORY_HMAC_FILE:-/data/.hmac}"
 RUN_AS="node:node"
-III_CONFIG="/opt/agentmemory/node_modules/@agentmemory/agentmemory/dist/iii-config.yaml"
+PACKAGE_DIR="${AGENTMEMORY_PACKAGE_DIR:-/opt/agentmemory/node_modules/@nightwatcher314/agentmemory}"
+if [ -z "$PACKAGE_DIR" ] || [ ! -d "$PACKAGE_DIR/dist" ]; then
+  echo "agentmemory: cannot find @nightwatcher314/agentmemory dist directory at $PACKAGE_DIR/dist" >&2
+  exit 1
+fi
+III_CONFIG="$PACKAGE_DIR/dist/iii-config.yaml"
+DIST_DIR="$PACKAGE_DIR/dist"
+NODE_HOME="$(getent passwd node | cut -d: -f6)"
+AGENTMEMORY_HOME="$DATA_DIR/agentmemory-home"
 
 mkdir -p "$DATA_DIR"
 chown -R "$RUN_AS" "$DATA_DIR"
+
+mkdir -p "$AGENTMEMORY_HOME" "$NODE_HOME"
+if [ -e "$NODE_HOME/.agentmemory" ] && [ ! -L "$NODE_HOME/.agentmemory" ]; then
+  rm -rf "$NODE_HOME/.agentmemory"
+fi
+ln -sfn "$AGENTMEMORY_HOME" "$NODE_HOME/.agentmemory"
+chown -R "$RUN_AS" "$AGENTMEMORY_HOME"
+
+PREFS_FILE="$AGENTMEMORY_HOME/preferences.json"
+if [ ! -s "$PREFS_FILE" ]; then
+  cat > "$PREFS_FILE" <<'EOF'
+{
+  "schemaVersion": 1,
+  "lastAgent": null,
+  "lastAgents": [],
+  "lastProvider": null,
+  "skipSplash": true,
+  "skipNpxHint": true,
+  "skipGlobalInstall": true,
+  "skipConsoleInstall": true,
+  "firstRunAt": "1970-01-01T00:00:00.000Z"
+}
+EOF
+  chmod 600 "$PREFS_FILE"
+  chown "$RUN_AS" "$PREFS_FILE"
+fi
 
 cat > "$III_CONFIG" <<'EOF'
 workers:
@@ -76,6 +110,12 @@ workers:
       logs_console_output: true
 EOF
 chown "$RUN_AS" "$III_CONFIG"
+
+if [ -d "$DIST_DIR" ]; then
+  find "$DIST_DIR" -maxdepth 1 -type f -name '*.mjs' -exec \
+    sed -i 's/server\.listen(currentPort, "127\.0\.0\.1")/server.listen(currentPort, "0.0.0.0")/g' {} +
+  chown -R "$RUN_AS" "$DIST_DIR"
+fi
 
 if [ ! -s "$HMAC_FILE" ]; then
   SECRET="$(openssl rand -hex 32)"

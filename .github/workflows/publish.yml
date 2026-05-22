@@ -45,9 +45,9 @@ jobs:
       - run: npm run build
       - run: npm test
 
-      - name: Publish @agentmemory/agentmemory
+      - name: Publish @nightwatcher314/agentmemory
         run: |
-          if npm view "@agentmemory/agentmemory@$(node -p "require('./package.json').version")" version >/dev/null 2>&1; then
+          if npm view "@nightwatcher314/agentmemory@$(node -p "require('./package.json').version")" version >/dev/null 2>&1; then
             echo "Version already published, skipping"
           else
             npm publish --provenance --access public
@@ -59,7 +59,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           for i in $(seq 1 24); do
-            if npm view "@agentmemory/agentmemory@$VERSION" version >/dev/null 2>&1; then
+            if npm view "@nightwatcher314/agentmemory@$VERSION" version >/dev/null 2>&1; then
               echo "Registry propagated after ${i} attempt(s)"
               exit 0
             fi
@@ -69,11 +69,11 @@ jobs:
           echo "ERROR: registry never propagated after 2 minutes" >&2
           exit 1
 
-      - name: Publish @agentmemory/mcp shim
+      - name: Publish @nightwatcher314/agentmemory-mcp shim
         working-directory: packages/mcp
         run: |
           SHIM_VERSION=$(node -p "require('./package.json').version")
-          if npm view "@agentmemory/mcp@$SHIM_VERSION" version >/dev/null 2>&1; then
+          if npm view "@nightwatcher314/agentmemory-mcp@$SHIM_VERSION" version >/dev/null 2>&1; then
             echo "Shim version already published, skipping"
           else
             npm publish --provenance --access public
@@ -81,12 +81,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Wait for @agentmemory/mcp registry propagation
+      - name: Wait for @nightwatcher314/agentmemory-mcp registry propagation
         working-directory: packages/mcp
         run: |
           SHIM_VERSION=$(node -p "require('./package.json').version")
           for i in $(seq 1 24); do
-            if npm view "@agentmemory/mcp@$SHIM_VERSION" version >/dev/null 2>&1; then
+            if npm view "@nightwatcher314/agentmemory-mcp@$SHIM_VERSION" version >/dev/null 2>&1; then
               echo "Shim propagated after ${i} attempt(s)"
               exit 0
             fi

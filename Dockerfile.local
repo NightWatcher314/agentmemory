@@ -1,0 +1,57 @@
+ARG III_VERSION=0.11.2
+
+FROM iiidev/iii:${III_VERSION} AS iii-image
+
+FROM node:22-slim AS builder
+
+ARG NPM_REGISTRY=https://npm.ntwc.top/
+
+WORKDIR /build/agentmemory
+
+COPY package.json ./
+
+RUN npm config set registry "${NPM_REGISTRY}" \
+ && npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund \
+ && npm ci --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+
+COPY tsconfig.json tsdown.config.ts ./
+COPY iii-config.yaml iii-config.docker.yaml docker-compose.yml .env.example ./
+COPY README.md LICENSE AGENTS.md ./
+COPY src ./src
+COPY plugin ./plugin
+
+RUN npm run build \
+ && mkdir -p /tmp/agentmemory-package \
+ && npm pack --pack-destination /tmp/agentmemory-package
+
+FROM node:22-slim
+
+ARG III_VERSION=0.11.2
+ARG III_SDK_VERSION=0.11.2
+ARG NPM_REGISTRY=https://npm.ntwc.top/
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssl ca-certificates tini gosu curl \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=iii-image /app/iii /usr/local/bin/iii
+COPY --from=builder /tmp/agentmemory-package/*.tgz /tmp/agentmemory.tgz
+
+WORKDIR /opt/agentmemory
+RUN npm config set registry "${NPM_REGISTRY}" \
+ && printf '{"name":"agentmemory-deploy","version":"1.0.0","private":true,"overrides":{"iii-sdk":"%s"}}\n' "${III_SDK_VERSION}" > package.json \
+ && npm install /tmp/agentmemory.tgz --omit=optional --legacy-peer-deps --no-fund --no-audit \
+ && rm /tmp/agentmemory.tgz \
+ && ln -s /opt/agentmemory/node_modules/.bin/agentmemory /usr/local/bin/agentmemory
+
+ENV AGENTMEMORY_III_VERSION=${III_VERSION} \
+    TINI_SUBREAPER=1
+
+COPY --chmod=0755 deploy/entrypoint.sh /usr/local/bin/agentmemory-entrypoint.sh
+
+EXPOSE 3111 3112 3113
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:3111/agentmemory/livez || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/agentmemory-entrypoint.sh"]

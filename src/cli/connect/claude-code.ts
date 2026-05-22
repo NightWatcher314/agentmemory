@@ -27,13 +27,13 @@ function entryMatches(entry: unknown): boolean {
   const e = entry as Record<string, unknown>;
   if (e["command"] !== "npx") return false;
   const args = Array.isArray(e["args"]) ? (e["args"] as string[]) : [];
-  return args.includes("@agentmemory/mcp");
+  return args.includes("@nightwatcher314/agentmemory-mcp");
 }
 
 export const adapter: ConnectAdapter = {
   name: "claude-code",
   displayName: "Claude Code",
-  docs: "https://github.com/rohitg00/agentmemory#claude-code-one-block-paste-it",
+  docs: "https://github.com/NightWatcher314/agentmemory#claude-code-one-block-paste-it",
   protocolNote:
     "→ Using MCP. Hooks are also available — see docs/claude-code.md.",
 

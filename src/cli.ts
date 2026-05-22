@@ -155,13 +155,13 @@ Environment:
   AGENTMEMORY_III_VERSION      Override pinned iii-engine version (default ${IIPINNED_VERSION}).
 
 Quick start:
-  npx @agentmemory/agentmemory          # start with local iii-engine or Docker
-  npx @agentmemory/agentmemory demo     # see semantic recall in 30 seconds
-  npx @agentmemory/agentmemory doctor   # diagnose config + feature flags
-  npx @agentmemory/agentmemory status   # health + memory count + flags
-  npx @agentmemory/agentmemory upgrade  # upgrade agentmemory + iii runtime
-  npx @agentmemory/agentmemory mcp      # standalone MCP server (no engine)
-  npx @agentmemory/mcp                  # same as above (shim package)
+  npx @nightwatcher314/agentmemory          # start with local iii-engine or Docker
+  npx @nightwatcher314/agentmemory demo     # see semantic recall in 30 seconds
+  npx @nightwatcher314/agentmemory doctor   # diagnose config + feature flags
+  npx @nightwatcher314/agentmemory status   # health + memory count + flags
+  npx @nightwatcher314/agentmemory upgrade  # upgrade agentmemory + iii runtime
+  npx @nightwatcher314/agentmemory mcp      # standalone MCP server (no engine)
+  npx @nightwatcher314/agentmemory-mcp                  # same as above (shim package)
 `);
   process.exit(0);
 }
@@ -481,7 +481,7 @@ async function maybeOfferGlobalInstall(): Promise<void> {
   if (answer === false) {
     writePrefs({ skipGlobalInstall: true });
     p.log.info(
-      "Skipped. Re-run via `npx @agentmemory/agentmemory` or install later with: npm install -g @agentmemory/agentmemory",
+      "Skipped. Re-run via `npx @nightwatcher314/agentmemory` or install later with: npm install -g @nightwatcher314/agentmemory",
     );
     return;
   }
@@ -489,14 +489,14 @@ async function maybeOfferGlobalInstall(): Promise<void> {
   const npmBin = whichBinary("npm");
   if (!npmBin) {
     p.log.warn(
-      "npm not found on PATH. Install manually: npm install -g @agentmemory/agentmemory",
+      "npm not found on PATH. Install manually: npm install -g @nightwatcher314/agentmemory",
     );
     return;
   }
   const ok = runCommand(
     npmBin,
-    ["install", "-g", `@agentmemory/agentmemory@${VERSION}`],
-    { label: `Installing @agentmemory/agentmemory@${VERSION} globally` },
+    ["install", "-g", `@nightwatcher314/agentmemory@${VERSION}`],
+    { label: `Installing @nightwatcher314/agentmemory@${VERSION} globally` },
   );
   if (ok) {
     p.log.success(
@@ -507,7 +507,7 @@ async function maybeOfferGlobalInstall(): Promise<void> {
     writePrefs({ skipGlobalInstall: true });
   } else {
     p.log.warn(
-      "Global install failed. Try manually: npm install -g @agentmemory/agentmemory",
+      "Global install failed. Try manually: npm install -g @nightwatcher314/agentmemory",
     );
   }
 }
@@ -868,12 +868,12 @@ function installInstructions(): string[] {
       `     1. Open https://github.com/iii-hq/iii/releases/tag/iii%2Fv${IIPINNED_VERSION}`,
       `     2. Download iii-x86_64-pc-windows-msvc.zip (or iii-aarch64-pc-windows-msvc.zip on ARM)`,
       "     3. Extract iii.exe to %USERPROFILE%\\.local\\bin\\iii.exe (or add to PATH)",
-      "     4. Re-run: npx @agentmemory/agentmemory",
+      "     4. Re-run: npx @nightwatcher314/agentmemory",
       "",
       `  B) Docker: docker pull iiidev/iii:${IIPINNED_VERSION}`,
-      "     Re-run with AGENTMEMORY_USE_DOCKER=1 npx @agentmemory/agentmemory",
+      "     Re-run with AGENTMEMORY_USE_DOCKER=1 npx @nightwatcher314/agentmemory",
       "",
-      "Or skip the engine entirely (standalone MCP):  npx @agentmemory/agentmemory mcp",
+      "Or skip the engine entirely (standalone MCP):  npx @nightwatcher314/agentmemory mcp",
       "",
       "Docs: https://iii.dev/docs",
     ];
@@ -885,12 +885,12 @@ function installInstructions(): string[] {
     `agentmemory needs iii-engine v${IIPINNED_VERSION}. Pick one:`,
     "",
     linuxInstall,
-    "     Then re-run: npx @agentmemory/agentmemory",
+    "     Then re-run: npx @nightwatcher314/agentmemory",
     "",
     `  B) Docker: docker pull iiidev/iii:${IIPINNED_VERSION}`,
-    "     Re-run with AGENTMEMORY_USE_DOCKER=1 npx @agentmemory/agentmemory",
+    "     Re-run with AGENTMEMORY_USE_DOCKER=1 npx @nightwatcher314/agentmemory",
     "",
-    "Or skip the engine entirely (standalone MCP):  npx @agentmemory/agentmemory mcp",
+    "Or skip the engine entirely (standalone MCP):  npx @nightwatcher314/agentmemory mcp",
     "",
     "Docs: https://iii.dev/docs",
   ];
@@ -967,7 +967,7 @@ function printReadyHint(consoleState: IiiConsoleState): void {
   // dir was already on PATH in this shell), so we suggest the npx
   // form for them; everyone else gets the global form.
   const demoCommand = isInvokedViaNpx()
-    ? "npx @agentmemory/agentmemory demo"
+    ? "npx @nightwatcher314/agentmemory demo"
     : "agentmemory demo";
   process.stdout.write(`\nTry: ${demoCommand}\n`);
 }
@@ -1026,7 +1026,7 @@ async function main() {
     if (startupFailure?.kind === "no-docker-compose") {
       lines.unshift(
         "Docker is installed but docker-compose.yml is missing from this",
-        "install. Re-install with: npm install -g @agentmemory/agentmemory",
+        "install. Re-install with: npm install -g @nightwatcher314/agentmemory",
         "",
       );
     }
@@ -1117,7 +1117,7 @@ async function runStatus() {
   const up = await isEngineRunning();
   if (!up) {
     p.log.error(`Not running — no response at ${base}`);
-    p.log.info("Start with: npx @agentmemory/agentmemory");
+    p.log.info("Start with: npx @nightwatcher314/agentmemory");
     process.exit(1);
   }
 
@@ -1413,7 +1413,7 @@ async function passiveServerChecks(): Promise<DoctorCheck[]> {
     ok: serverUp,
     hint: serverUp
       ? undefined
-      : `Start with: npx @agentmemory/agentmemory (tried ${base})`,
+      : `Start with: npx @nightwatcher314/agentmemory (tried ${base})`,
   });
   if (!serverUp) return checks;
 
@@ -1841,7 +1841,7 @@ async function runInit() {
   const template = findEnvExample();
   if (!template) {
     p.log.error(
-      "Could not locate .env.example in the package. Re-install with: npm i -g @agentmemory/agentmemory",
+      "Could not locate .env.example in the package. Re-install with: npm i -g @nightwatcher314/agentmemory",
     );
     process.exit(1);
   }
@@ -1878,8 +1878,8 @@ async function runInit() {
       "",
       "Common next steps:",
       "  1. Pick an LLM provider key (ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / etc.)",
-      "  2. Run `npx @agentmemory/agentmemory doctor` to verify the daemon sees them",
-      "  3. Run `npx @agentmemory/agentmemory` to start the worker",
+      "  2. Run `npx @nightwatcher314/agentmemory doctor` to verify the daemon sees them",
+      "  3. Run `npx @nightwatcher314/agentmemory` to start the worker",
     ].join("\n"),
     "Next steps",
   );
@@ -1895,7 +1895,7 @@ async function runDemo() {
     p.log.error(
       `agentmemory worker not reachable on port ${port} (livez probe failed). Something may be on the port but it isn't serving /agentmemory/*.`,
     );
-    p.log.info("Start it with: npx @agentmemory/agentmemory");
+    p.log.info("Start it with: npx @nightwatcher314/agentmemory");
     process.exit(1);
   }
 
@@ -2157,7 +2157,7 @@ async function stopDockerEngine(composeFile: string, port: number): Promise<void
     );
     process.exit(1);
   }
-  p.outro("Stopped. Memories persisted to disk; restart anytime with: npx @agentmemory/agentmemory");
+  p.outro("Stopped. Memories persisted to disk; restart anytime with: npx @nightwatcher314/agentmemory");
 }
 
 async function runStop(): Promise<void> {
@@ -2242,7 +2242,7 @@ async function runStop(): Promise<void> {
     p.log.error("One or more engine processes survived SIGKILL. Investigate with `ps`.");
     process.exit(1);
   }
-  p.outro("Stopped. Memories persisted to disk; restart anytime with: npx @agentmemory/agentmemory");
+  p.outro("Stopped. Memories persisted to disk; restart anytime with: npx @nightwatcher314/agentmemory");
 }
 
 async function runMcp(): Promise<void> {
@@ -2316,7 +2316,7 @@ async function runImportJsonl(): Promise<void> {
   }
   if (!probeOk) {
     p.log.error(
-      `agentmemory livez probe failed on port ${port}: ${probeDetail}. Start it with \`npx @agentmemory/agentmemory\` in another terminal, then re-run this command.`,
+      `agentmemory livez probe failed on port ${port}: ${probeDetail}. Start it with \`npx @nightwatcher314/agentmemory\` in another terminal, then re-run this command.`,
     );
     process.exit(1);
   }
@@ -2568,7 +2568,7 @@ async function runRemove(): Promise<void> {
   }
 
   p.outro(
-    "Done. agentmemory cleanly removed. The npm package itself: npm uninstall -g @agentmemory/agentmemory",
+    "Done. agentmemory cleanly removed. The npm package itself: npm uninstall -g @nightwatcher314/agentmemory",
   );
 }
 

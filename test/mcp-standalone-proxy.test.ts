@@ -15,7 +15,7 @@ function installFetch(handler: (url: string, init?: RequestInit) => Response): F
 
 const BASE = "http://localhost:3111";
 
-describe("@agentmemory/mcp standalone — server proxy (issue #159)", () => {
+describe("@nightwatcher314/agentmemory-mcp standalone — server proxy (issue #159)", () => {
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {

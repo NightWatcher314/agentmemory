@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderViewerDocument } from "./document.js";
+import { createViewerNonce, buildViewerCsp, timingSafeCompare } from "../auth.js";
 
 // Self-host the viewer favicon at /favicon.svg instead of an inline
 // data: URI so the viewer CSP can stay tight at `img-src 'self'`.
@@ -130,6 +131,129 @@ function readBody(req: IncomingMessage): Promise<string> {
 }
 
 const MAX_VIEWER_PORT_RETRIES = 10;
+const VIEWER_SESSION_COOKIE = "agentmemory_viewer_session";
+const VIEWER_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24;
+
+function getViewerPassword(): string {
+  return process.env["AGENTMEMORY_VIEWER_PASSWORD"] || "";
+}
+
+function parseCookies(header: string | string[] | undefined): Record<string, string> {
+  const raw = Array.isArray(header) ? header.join(";") : header || "";
+  const cookies: Record<string, string> = {};
+  for (const part of raw.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx <= 0) continue;
+    const key = part.slice(0, idx).trim();
+    const value = part.slice(idx + 1).trim();
+    if (!key) continue;
+    try {
+      cookies[key] = decodeURIComponent(value);
+    } catch {
+      cookies[key] = value;
+    }
+  }
+  return cookies;
+}
+
+function isViewerAuthenticated(req: IncomingMessage, sessionToken: string): boolean {
+  const token = parseCookies(req.headers.cookie)[VIEWER_SESSION_COOKIE];
+  return typeof token === "string" && timingSafeCompare(token, sessionToken);
+}
+
+function secureCookieFlag(req: IncomingMessage): string {
+  return req.headers["x-forwarded-proto"] === "https" ? "; Secure" : "";
+}
+
+function renderViewerLoginPage(message = ""): { html: string; csp: string } {
+  const nonce = createViewerNonce();
+  const escapedMessage = message.replace(/[&<>"']/g, (ch) => {
+    const map: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return map[ch] || ch;
+  });
+  return {
+    csp: buildViewerCsp(nonce),
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>agentmemory viewer login</title>
+  <style>
+    :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f6f7f9; color: #111; }
+    main { width: min(360px, calc(100vw - 32px)); }
+    h1 { margin: 0 0 8px; font-size: 24px; font-weight: 650; letter-spacing: 0; }
+    p { margin: 0 0 20px; color: #5b616e; line-height: 1.5; }
+    label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #303540; }
+    input { box-sizing: border-box; width: 100%; height: 42px; border: 1px solid #c7ccd4; border-radius: 6px; padding: 0 12px; font: inherit; background: #fff; color: #111; }
+    button { width: 100%; height: 42px; margin-top: 12px; border: 0; border-radius: 6px; background: #111; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
+    .error { min-height: 20px; margin-top: 12px; color: #b42318; font-size: 13px; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #101214; color: #f4f6f8; }
+      p { color: #aab2bd; }
+      label { color: #d7dde5; }
+      input { background: #171a1f; color: #f4f6f8; border-color: #3a414b; }
+      button { background: #f4f6f8; color: #111; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>agentmemory viewer</h1>
+    <p>Enter the viewer password to continue.</p>
+    <form id="login-form">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+      <button type="submit">Sign in</button>
+      <div id="error" class="error">${escapedMessage}</div>
+    </form>
+  </main>
+  <script nonce="${nonce}">
+    var form = document.getElementById('login-form');
+    var password = document.getElementById('password');
+    var error = document.getElementById('error');
+    form.addEventListener('submit', async function(event) {
+      event.preventDefault();
+      error.textContent = '';
+      var res = await fetch('/viewer/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password.value })
+      });
+      if (res.ok) {
+        window.location.reload();
+        return;
+      }
+      error.textContent = 'Invalid password';
+      password.select();
+    });
+  </script>
+</body>
+</html>`,
+  };
+}
+
+async function readViewerPassword(req: IncomingMessage): Promise<string> {
+  const body = await readBody(req);
+  const contentType = req.headers["content-type"] || "";
+  if (typeof contentType === "string" && contentType.includes("application/json")) {
+    try {
+      const parsed = JSON.parse(body) as { password?: unknown };
+      return typeof parsed.password === "string" ? parsed.password : "";
+    } catch {
+      return "";
+    }
+  }
+  const params = new URLSearchParams(body);
+  return params.get("password") || "";
+}
 
 let boundViewerPort: number | null = null;
 let viewerSkipped = false;
@@ -154,6 +278,8 @@ export function startViewerServer(
 
   const resolvedRestPort = restPort ?? port - 2;
   const requestedPort = port;
+  const viewerPassword = getViewerPassword();
+  const viewerSessionToken = createViewerNonce();
   // Computed lazily on first request — `port` may be 0 here (OS-assigned)
   // or the EADDRINUSE retry loop below may bump us to a different port,
   // so we read the actual bound port from server.address() on first hit.
@@ -187,6 +313,41 @@ export function startViewerServer(
       });
       res.end();
       return;
+    }
+
+    if (viewerPassword) {
+      if (method === "POST" && pathname === "/viewer/login") {
+        const password = await readViewerPassword(req);
+        if (!timingSafeCompare(password, viewerPassword)) {
+          json(res, 401, { error: "unauthorized" }, req);
+          return;
+        }
+        res.writeHead(204, {
+          ...corsHeaders(req),
+          "Set-Cookie": `${VIEWER_SESSION_COOKIE}=${encodeURIComponent(viewerSessionToken)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${VIEWER_SESSION_MAX_AGE_SECONDS}${secureCookieFlag(req)}`,
+        });
+        res.end();
+        return;
+      }
+      if (!isViewerAuthenticated(req, viewerSessionToken)) {
+        if (
+          method === "GET" &&
+          (pathname === "/" ||
+            pathname === "/viewer" ||
+            pathname === "/agentmemory/viewer")
+        ) {
+          const rendered = renderViewerLoginPage();
+          res.writeHead(200, {
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Security-Policy": rendered.csp,
+            "Cache-Control": "no-cache",
+          });
+          res.end(rendered.html);
+          return;
+        }
+        json(res, 401, { error: "viewer login required" }, req);
+        return;
+      }
     }
 
     if (

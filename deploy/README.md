@@ -16,7 +16,6 @@ exec'ing the agentmemory CLI.
 | [fly.io](./fly/README.md) | Single machine with auto-stop. Cheapest idle cost on a managed host; cold-start on first request after sleep. | ~$0.15/month at full idle |
 | [Railway](./railway/README.md) | Push from GitHub, volume in the dashboard. Easiest managed dashboard flow. | $5/month (Hobby plan flat fee) |
 | [Render](./render/README.md) | Blueprint-driven; persistent disk attaches automatically. Most "set it and forget it." | $7.25/month (Starter web + 1 GB disk) |
-| [Coolify](./coolify/README.md) | Self-hosted on your own VPS. Same Docker Compose stack, you own the host and the data. | VPS cost only (Hetzner CX22 ~€3.79/month) |
 
 ## What every template guarantees
 
@@ -46,11 +45,8 @@ exec'ing the agentmemory CLI.
   monthly bill.
 - Pick **Render** if you want the most "set it and forget it"
   Blueprint flow with automatic disk snapshots on paid plans.
-- Pick **Coolify** if you already run a VPS and want a self-hosted
-  control plane — same Docker Compose stack, no third-party host has
-  your memories.
 
-All four give you the same agentmemory API at the same port (3111)
+All three give you the same agentmemory API at the same port (3111)
 with the same auth model. Migrating between them later is a `tar` of
 `/data` and a re-import — see each platform's README for the exact
 commands.
@@ -62,8 +58,8 @@ search falls back to BM25-only mode and synthetic (zero-LLM)
 compression keeps memories indexable. To unlock LLM-powered
 compression and hybrid (BM25 + vector) recall, add one of the
 following to your platform's environment variables (Fly:
-`flyctl secrets set`; Railway / Render / Coolify: dashboard
-*Variables / Environment* tab):
+`flyctl secrets set`; Railway / Render: dashboard *Variables /
+Environment* tab):
 
 | Variable                  | Purpose                                                  |
 |---------------------------|----------------------------------------------------------|

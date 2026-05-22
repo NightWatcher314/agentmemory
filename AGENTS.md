@@ -1,5 +1,15 @@
 # agentmemory — Agent Instructions
 
+## Operational Docs
+
+Before maintenance tasks, read the relevant files in `docs/`. For upstream sync requests, read `docs/upstream-sync.md` and `docs/fork-delta.md`, then follow them.
+
+## Documentation Map
+
+- `docs/upstream-sync.md` — current upstream merge workflow for this fork.
+- `docs/fork-delta.md` — intentional fork-only changes to preserve during upstream merges.
+- `docs/fork-release-notes.md` — npm/package release workflow for the fork.
+
 ## Architecture
 
 agentmemory is a persistent memory system for AI coding agents, built on iii-engine's three primitives (Worker/Function/Trigger). Everything goes through `registerFunction`/`registerTrigger`/`sdk.trigger()` — never bypass iii-engine with standalone SQLite or in-process alternatives.
