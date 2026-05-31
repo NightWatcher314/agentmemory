@@ -61,6 +61,14 @@ setBootVerbose(IS_VERBOSE);
 
 const IS_RESET = args.includes("--reset");
 
+// --version / -V early exit. Print VERSION + exit before any side effects
+// (engine boot, env load, dir mkdir). `-v` is taken by --verbose so we
+// reserve `-V` (capital) for version per POSIX convention.
+if (args.includes("--version") || args.includes("-V")) {
+  process.stdout.write(`${VERSION}\n`);
+  process.exit(0);
+}
+
 // Pinned iii-engine version. The unpinned `install.iii.dev/iii/main/install.sh`
 // script tracks `latest`, which made every fresh agentmemory install pull
 // engine 0.11.6 — and 0.11.6 introduces a new sandbox-everything-via-
@@ -117,8 +125,9 @@ Usage: agentmemory [command] [options]
 Commands:
   (default)          Start agentmemory worker
   init               Copy bundled .env.example to ~/.agentmemory/.env if absent
-  connect [agent]    Wire agentmemory into an installed agent (claude-code, codex,
-                     cursor, gemini-cli, openclaw, hermes, pi, openhuman).
+  connect [agent]    Wire agentmemory into an installed agent (claude-code,
+                     copilot-cli, codex, cursor, gemini-cli, openclaw,
+                     hermes, pi, openhuman).
                      No arg = interactive picker. --all wires every detected agent.
                      --dry-run shows what would change. --force re-installs.
   status             Show connection status, memory count, flags, and health
@@ -143,7 +152,7 @@ Options:
   --help, -h         Show this help
   --verbose, -v      Show engine stderr, boot log, and diagnostic info
   --reset            Wipe ~/.agentmemory/preferences.json and re-run onboarding
-  --tools all|core   Tool visibility (default: core = 7 tools)
+  --tools all|core   Tool visibility (default: all = 51 tools; core = 8 essentials)
   --no-engine        Skip auto-starting iii-engine
   --port <N>         Override REST port (default: 3111)
 
@@ -302,10 +311,18 @@ async function isAgentmemoryReady(): Promise<boolean> {
 }
 
 function findIiiConfig(): string {
+  // Precedence (user-overridable wins): explicit env > project cwd >
+  // ~/.agentmemory/ > bundled. The bundled config used to win
+  // unconditionally, so users hitting the observability log-feedback
+  // loop (#519) had no way to drop a tamer config in place without
+  // editing node_modules.
+  const envPath = process.env["AGENTMEMORY_III_CONFIG"];
   const candidates = [
+    ...(envPath ? [envPath] : []),
+    join(process.cwd(), "iii-config.yaml"),
+    join(homedir(), ".agentmemory", "iii-config.yaml"),
     join(__dirname, "iii-config.yaml"),
     join(__dirname, "..", "iii-config.yaml"),
-    join(process.cwd(), "iii-config.yaml"),
   ];
   for (const c of candidates) {
     if (existsSync(c)) return c;
@@ -358,19 +375,28 @@ function iiiBinVersion(binPath: string): string | null {
   }
 }
 
-let warnedVersionMismatch = false;
-function warnIfEngineVersionMismatch(iiiBinPath: string | null | undefined): void {
-  if (!iiiBinPath || warnedVersionMismatch) return;
+// Enforce hard-pin on iii-engine version. Soft-warn lets the worker boot
+// against a mismatched engine and crash at runtime (state::list-not-found
+// on v0.13.0+, sandbox-everything trap on v0.11.6+). Refuse to start and
+// point the user at the downgrade command — same escape hatch as before
+// via AGENTMEMORY_III_VERSION, which redefines IIPINNED_VERSION upstream
+// (line 75) so the mismatch check passes for users who knowingly want to
+// run against a different engine.
+function enforceEngineVersionPin(iiiBinPath: string | null | undefined): void {
+  if (!iiiBinPath) return;
   const detected = iiiBinVersion(iiiBinPath);
   if (!detected || detected === IIPINNED_VERSION) return;
-  warnedVersionMismatch = true;
   const asset = iiiReleaseAsset();
   const downloadHint = asset
     ? `curl -fsSL https://github.com/iii-hq/iii/releases/download/iii/v${IIPINNED_VERSION}/${asset} | tar -xz -C ~/.local/bin`
     : `download v${IIPINNED_VERSION} from https://github.com/iii-hq/iii/releases/tag/iii%2Fv${IIPINNED_VERSION}`;
-  p.log.warn(
-    `iii-engine on PATH is v${detected} but agentmemory v${VERSION} pins v${IIPINNED_VERSION}. Set AGENTMEMORY_III_VERSION=${detected} to silence, or downgrade with: \`${downloadHint}\``,
+  p.log.error(
+    `iii-engine on PATH is v${detected} but agentmemory v${VERSION} hard-pins v${IIPINNED_VERSION}. ` +
+      `Engine API drift causes runtime failures (e.g. state::list-not-found on v0.13.0). ` +
+      `Downgrade with: \`${downloadHint}\`. ` +
+      `Or set AGENTMEMORY_III_VERSION=${detected} to override at your own risk.`,
   );
+  process.exit(1);
 }
 
 function enginePidfilePath(): string {
@@ -408,6 +434,33 @@ function readEnginePidfile(): number | null {
 function clearEnginePidfile(): void {
   try {
     unlinkSync(enginePidfilePath());
+  } catch {}
+}
+
+// Worker pidfile (#640, #474): the agentmemory worker process
+// (`node dist/index.mjs`) is spawned by iii-exec inside the engine. When
+// `agentmemory stop` kills only the engine pid, the worker can survive
+// (detached spawn, signal not propagated, or kept alive by a wrapper
+// script). On the next start, the orphaned worker reconnects to the new
+// engine and shows up as a duplicate registration. We write the worker
+// pid from src/index.ts on boot so stop can find and reap it.
+function workerPidfilePath(): string {
+  return join(homedir(), ".agentmemory", "worker.pid");
+}
+
+function readWorkerPidfile(): number | null {
+  try {
+    const pidStr = readFileSync(workerPidfilePath(), "utf-8").trim();
+    const pid = parseInt(pidStr, 10);
+    return Number.isFinite(pid) && pid > 0 ? pid : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearWorkerPidfile(): void {
+  try {
+    unlinkSync(workerPidfilePath());
   } catch {}
 }
 
@@ -536,7 +589,7 @@ function detectIiiConsole(): IiiConsoleState {
 }
 
 const III_CONSOLE_INSTALL_CMD =
-  "curl -fsSL https://install.iii.dev/console/main/install.sh | sh";
+  "curl -fsSL https://install.iii.dev/iii/main/install.sh | sh";
 
 async function ensureIiiConsole(): Promise<IiiConsoleState> {
   const state = detectIiiConsole();
@@ -717,7 +770,7 @@ function spawnEngineBackground(
 }
 
 function startIiiBin(iiiBin: string, configPath: string): boolean {
-  warnIfEngineVersionMismatch(iiiBin);
+  enforceEngineVersionPin(iiiBin);
   const s = p.spinner();
   s.start(`Starting iii-engine: ${iiiBin}`);
   writeEngineState({ kind: "native", configPath });
@@ -1008,7 +1061,7 @@ async function main() {
     if (IS_VERBOSE) p.log.success("iii-engine is running");
     const attachedBin =
       whichBinary("iii") ?? fallbackIiiPaths().find((p) => existsSync(p)) ?? null;
-    warnIfEngineVersionMismatch(attachedBin);
+    enforceEngineVersionPin(attachedBin);
     adoptRunningEngine();
     await import("./index.js");
     if (await waitForAgentmemoryReady(15000)) {
@@ -1126,7 +1179,7 @@ async function runStatus() {
       apiFetch<any>(base, "health"),
       apiFetch<any>(base, "sessions"),
       apiFetch<any>(base, "graph/stats"),
-      apiFetch<any>(base, "export"),
+      apiFetch<any>(base, "memories?count=true"),
       apiFetch<any>(base, "config/flags"),
     ]);
 
@@ -1136,15 +1189,19 @@ async function runStatus() {
     const h = healthRes?.health;
     const status = healthRes?.status || "unknown";
     const version = healthRes?.version || "?";
-    const sessions = Array.isArray(sessionsRes?.sessions) ? sessionsRes.sessions.length : 0;
+    const sessionList = Array.isArray(sessionsRes?.sessions) ? sessionsRes.sessions : [];
+    const sessions = sessionList.length;
     const nodes = Number(graphRes?.totalNodes ?? graphRes?.nodes ?? graphRes?.nodeCount ?? 0);
     const edges = Number(graphRes?.totalEdges ?? graphRes?.edges ?? graphRes?.edgeCount ?? 0);
     const cb = healthRes?.circuitBreaker?.state || "closed";
     const heapMB = h?.memory ? Math.round(h.memory.heapUsed / 1048576) : 0;
     const uptime = h?.uptimeSeconds ? Math.round(h.uptimeSeconds) : 0;
 
-    const obsCount = memoriesRes?.observations?.length || 0;
-    const memCount = memoriesRes?.memories?.length || 0;
+    const obsCount = sessionList.reduce(
+      (sum: number, s: any) => sum + (Number(s?.observationCount) || 0),
+      0,
+    );
+    const memCount = Number(memoriesRes?.latestCount ?? memoriesRes?.total ?? 0) || 0;
     const estFullTokens = obsCount * 80;
     const estInjectedTokens = Math.min(obsCount, 50) * 38;
     const tokensSaved = estFullTokens - estInjectedTokens;
@@ -2151,6 +2208,7 @@ async function stopDockerEngine(composeFile: string, port: number): Promise<void
   });
   clearEnginePidfile();
   clearEngineState();
+  clearWorkerPidfile();
   if (!ok) {
     p.log.error(
       `docker compose down failed. The engine may still be running on :${port}. Inspect with:\n  docker compose -f ${composeFile} ps`,
@@ -2172,6 +2230,7 @@ async function runStop(): Promise<void> {
       p.log.info(`No engine responding on port ${port}.`);
       clearEnginePidfile();
       clearEngineState();
+      clearWorkerPidfile();
       p.outro("Nothing to stop.");
       return;
     }
@@ -2181,21 +2240,44 @@ async function runStop(): Promise<void> {
 
   const portPids = findEnginePidsByPort(port);
   const pidfilePid = readEnginePidfile();
+  // #640 + #474: read the worker pid up front so the engine-down branch
+  // can still reap an orphaned worker process (the common failure mode
+  // where a wrapper script kept the worker alive across engine restarts).
+  const workerPid = readWorkerPidfile();
 
   if (!running) {
-    if (portPids.length === 0 && pidfilePid === null) {
+    if (portPids.length === 0 && pidfilePid === null && workerPid === null) {
       clearEnginePidfile();
       clearEngineState();
+      clearWorkerPidfile();
       p.outro("Nothing to stop.");
+      return;
+    }
+    if (workerPid !== null && portPids.length === 0 && pidfilePid === null) {
+      // Engine already gone but worker is lingering — reap it directly
+      // instead of preserving for manual cleanup.
+      const s = p.spinner();
+      s.start(`Stopping orphaned agentmemory worker (pid ${workerPid})...`);
+      const ok = await signalAndWait(workerPid, "SIGTERM", 3000);
+      s.stop(ok ? `Stopped worker pid ${workerPid}` : `Failed to stop worker pid ${workerPid}`);
+      clearEnginePidfile();
+      clearEngineState();
+      clearWorkerPidfile();
+      if (!ok) {
+        p.log.error(`Worker pid ${workerPid} survived SIGKILL. Investigate with \`ps\`.`);
+        process.exit(1);
+      }
+      p.outro("Stopped orphaned worker. Memories persisted to disk.");
       return;
     }
     const survivors = new Set<number>(portPids);
     if (pidfilePid) survivors.add(pidfilePid);
+    if (workerPid) survivors.add(workerPid);
     p.log.warn(
       `Engine not responding on :${port}, but ${survivors.size} process(es) still hold the port or pidfile: ${[...survivors].join(", ")}`,
     );
     p.log.info(
-      `Preserving ~/.agentmemory/iii.pid. Investigate before manual cleanup:\n  ps -p ${[...survivors].join(",")} -o pid,ppid,comm,etime\n  ${IS_WINDOWS ? "netstat -ano | findstr :" + port : "lsof -i :" + port}`,
+      `Preserving ~/.agentmemory/iii.pid + worker.pid. Investigate before manual cleanup:\n  ps -p ${[...survivors].join(",")} -o pid,ppid,comm,etime\n  ${IS_WINDOWS ? "netstat -ano | findstr :" + port : "lsof -i :" + port}`,
     );
     process.exit(1);
   }
@@ -2220,7 +2302,15 @@ async function runStop(): Promise<void> {
   if (pidfilePid) candidates.add(pidfilePid);
   for (const pid of portPids) candidates.add(pid);
 
-  if (candidates.size === 0) {
+  // #640 + #474: stop must also reap the agentmemory worker process
+  // (`node dist/index.mjs`). If only the engine is killed, the worker can
+  // survive (detached spawn / signal not propagated) and reconnect to the
+  // next engine as a duplicate registration. workerPid was read above so
+  // the engine-down branch could also reap orphans.
+  const workerCandidates = new Set<number>();
+  if (workerPid) workerCandidates.add(workerPid);
+
+  if (candidates.size === 0 && workerCandidates.size === 0) {
     p.log.error(
       `Could not locate engine process. Try:\n  ${IS_WINDOWS ? "netstat -ano | findstr :" + port : "lsof -i :" + port + " -t | xargs kill -9"}`,
     );
@@ -2235,11 +2325,20 @@ async function runStop(): Promise<void> {
     s.stop(ok ? `Stopped pid ${pid}` : `Failed to stop pid ${pid}`);
     if (!ok) allStopped = false;
   }
+  for (const pid of workerCandidates) {
+    if (candidates.has(pid)) continue;
+    const s = p.spinner();
+    s.start(`Stopping agentmemory worker (pid ${pid})...`);
+    const ok = await signalAndWait(pid, "SIGTERM", 3000);
+    s.stop(ok ? `Stopped worker pid ${pid}` : `Failed to stop worker pid ${pid}`);
+    if (!ok) allStopped = false;
+  }
 
   clearEnginePidfile();
   clearEngineState();
+  clearWorkerPidfile();
   if (!allStopped) {
-    p.log.error("One or more engine processes survived SIGKILL. Investigate with `ps`.");
+    p.log.error("One or more processes survived SIGKILL. Investigate with `ps`.");
     process.exit(1);
   }
   p.outro("Stopped. Memories persisted to disk; restart anytime with: npx @nightwatcher314/agentmemory");

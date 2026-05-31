@@ -1,0 +1,15 @@
+{
+  "name": "agentmemory",
+  "version": "0.9.24-nightwatcher.0",
+  "description": "Persistent memory for AI coding agents -- captures tool usage, compresses via LLM, injects context into future sessions. 12 hooks, 53 MCP tools, 10 skills, real-time viewer.",
+  "author": {
+    "name": "NightWatcher314",
+    "url": "https://github.com/NightWatcher314"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/NightWatcher314/agentmemory",
+  "repository": "https://github.com/NightWatcher314/agentmemory",
+  "skills": "skills/",
+  "mcpServers": ".mcp.copilot.json",
+  "hooks": "hooks/hooks.copilot.json"
+}
