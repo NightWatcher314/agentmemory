@@ -473,7 +473,7 @@ The Codex plugin ships from the same `plugin/` directory as the Claude Code plug
 
 - `@nightwatcher314/agentmemory-mcp` as an MCP server (proxies all 53 tools when `AGENTMEMORY_URL` points at a running agentmemory server; falls back to 7 tools locally when no server is reachable)
 - 6 lifecycle hooks: `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `PreCompact`, `Stop`
-- 8 skills: `/recall`, `/remember`, `/session-history`, `/forget`, `/recap`, `/handoff`, `/commit-context`, `/commit-history`
+- 10 skills: `/recall`, `/remember`, `/session-history`, `/forget`, `/recap`, `/handoff`, `/commit-context`, `/commit-history`, `/document-project-memory`, `/learn-codebase`
 
 Codex's hook engine injects `CLAUDE_PLUGIN_ROOT` into hook subprocesses (per [`codex-rs/hooks/src/engine/discovery.rs`](https://github.com/openai/codex/blob/main/codex-rs/hooks/src/engine/discovery.rs)), so the same hook scripts work across both hosts without duplication. Subagent / SessionEnd / Notification / TaskCompleted / PostToolUseFailure events are Claude-Code-only and are not registered for Codex.
 
@@ -553,7 +553,7 @@ Start the memory server: `npx @nightwatcher314/agentmemory`
 
 #### Native skills via `npx skills add` (50+ agents)
 
-agentmemory ships 8 skills (`remember`, `recall`, `recap`, `handoff`, `forget`, `commit-context`, `commit-history`, `session-history`) in the Claude-Code-style `<dir>/SKILL.md` format. The [`skills`](https://npmjs.com/package/skills) CLI by vercel-labs auto-installs them into the calling agent's native skill directory across 50+ agents (Claude Code, Cursor, Cline, Continue, Droid, Warp, Codex, Antigravity, Kiro, OpenCode, Goose, Roo, Trae, Windsurf, and more):
+agentmemory ships 10 skills (`remember`, `recall`, `recap`, `handoff`, `forget`, `commit-context`, `commit-history`, `session-history`, `document-project-memory`, `learn-codebase`) in the Claude-Code-style `<dir>/SKILL.md` format. The [`skills`](https://npmjs.com/package/skills) CLI by vercel-labs auto-installs them into the calling agent's native skill directory across 50+ agents (Claude Code, Cursor, Cline, Continue, Droid, Warp, Codex, Antigravity, Kiro, OpenCode, Goose, Roo, Trae, Windsurf, and more):
 
 ```bash
 npx skills add NightWatcher314/agentmemory -y          # auto-detects the calling agent
@@ -566,7 +566,7 @@ This is **complementary** to `agentmemory connect <agent>`:
 - `agentmemory connect <agent>` writes the MCP server config so the tools are available.
 - `npx skills add NightWatcher314/agentmemory` installs the skills so the agent knows when to call them.
 
-For the few agents the skills CLI doesn't cover yet (Zed v1.3.x and below), drop the 8 SKILL.md files under the agent's native skill directory yourself — same format works everywhere.
+For the few agents the skills CLI doesn't cover yet (Zed v1.3.x and below), drop the 10 SKILL.md files under the agent's native skill directory yourself — same format works everywhere.
 
 #### Standard MCP block
 
@@ -1429,7 +1429,7 @@ Create `~/.agentmemory/.env`:
 
 <h2 id="api"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/tags/light/section-api.svg"><img src="assets/tags/section-api.svg" alt="API" height="32" /></picture></h2>
 
-125 endpoints on port `3111`. The REST API binds to `127.0.0.1` by default. Protected endpoints require `Authorization: Bearer <secret>` when `AGENTMEMORY_SECRET` is set, and mesh sync endpoints require `AGENTMEMORY_SECRET` on both peers.
+126 endpoints on port `3111`. The REST API binds to `127.0.0.1` by default. Protected endpoints require `Authorization: Bearer <secret>` when `AGENTMEMORY_SECRET` is set, and mesh sync endpoints require `AGENTMEMORY_SECRET` on both peers.
 
 <details>
 <summary>Key endpoints</summary>
