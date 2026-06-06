@@ -36,16 +36,28 @@ function parseOptionalInt(raw: unknown): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+function candidateSecrets(secret: string | undefined): string[] {
+  return [secret, process.env.AGENTMEMORY_SECRET]
+    .filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+}
+
+function isAuthorized(auth: unknown, secret: string | undefined): boolean {
+  return (
+    typeof auth === "string" &&
+    candidateSecrets(secret).some((candidate) =>
+      timingSafeCompare(auth, `Bearer ${candidate}`),
+    )
+  );
+}
+
 function checkAuth(
   req: ApiRequest,
   secret: string | undefined,
 ): Response | null {
-  if (!secret) return null;
+  const candidates = candidateSecrets(secret);
+  if (candidates.length === 0) return null;
   const auth = req.headers?.["authorization"] || req.headers?.["Authorization"];
-  if (
-    typeof auth !== "string" ||
-    !timingSafeCompare(auth, `Bearer ${secret}`)
-  ) {
+  if (!isAuthorized(auth, secret)) {
     return { status_code: 401, body: { error: "unauthorized" } };
   }
   return null;
@@ -147,13 +159,11 @@ export function registerApiTriggers(
     async (input: {
       request?: { headers?: Record<string, string | undefined> };
     }) => {
-      if (!secret) return { action: "continue" };
+      const candidates = candidateSecrets(secret);
+      if (candidates.length === 0) return { action: "continue" };
       const headers = input?.request?.headers || {};
       const auth = headers["authorization"] || headers["Authorization"];
-      if (
-        typeof auth !== "string" ||
-        !timingSafeCompare(auth, `Bearer ${secret}`)
-      ) {
+      if (!isAuthorized(auth, secret)) {
         return {
           action: "respond",
           response: { status_code: 401, body: { error: "unauthorized" } },
