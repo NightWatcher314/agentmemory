@@ -191,6 +191,25 @@ function resourceContents(uri: string, payload: unknown): {
   };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function resourceTemplatesFromResources(resources: unknown[]): unknown[] {
+  return resources
+    .filter((resource): resource is Record<string, unknown> => {
+      return isRecord(resource) &&
+        typeof resource["uri"] === "string" &&
+        resource["uri"].includes("{");
+    })
+    .map((resource) => ({
+      uriTemplate: resource["uri"],
+      name: resource["name"],
+      description: resource["description"],
+      mimeType: resource["mimeType"],
+    }));
+}
+
 function decodeUriComponent(value: string): string {
   try {
     return decodeURIComponent(value);
@@ -591,6 +610,28 @@ export async function handleResourcesList(): Promise<{ resources: unknown[] }> {
 export async function handleResourceTemplatesList(): Promise<{
   resourceTemplates: unknown[];
 }> {
+  const handle = await resolveHandle();
+  announceMode(handle);
+  if (handle.mode === "proxy") {
+    try {
+      const remote = (await handle.call("/agentmemory/mcp/resources", {
+        method: "GET",
+      })) as { resources?: unknown } | null;
+      if (remote && Array.isArray(remote.resources)) {
+        return {
+          resourceTemplates: resourceTemplatesFromResources(remote.resources),
+        };
+      }
+      process.stderr.write(
+        "[@agentmemory/mcp] resources/templates/list: server returned unexpected resource shape; falling back to local resource templates\n",
+      );
+    } catch (err) {
+      process.stderr.write(
+        `[@agentmemory/mcp] resources/templates/list proxy failed: ${err instanceof Error ? err.message : String(err)}; falling back to local resource templates\n`,
+      );
+      invalidateHandle();
+    }
+  }
   return { resourceTemplates: MCP_RESOURCE_TEMPLATES };
 }
 
@@ -599,14 +640,15 @@ async function handleLocalResourceRead(
   kvInstance: InMemoryKV,
 ): Promise<{ contents: Array<{ uri: string; mimeType: string; text: string }> }> {
   if (uri === "agentmemory://status") {
-    const sessions =
-      await kvInstance.list<Record<string, unknown>>("mem:sessions");
-    const memories =
-      await kvInstance.list<Record<string, unknown>>("mem:memories");
+    const [sessions, memories, healthData] = await Promise.all([
+      kvInstance.list<Record<string, unknown>>("mem:sessions"),
+      kvInstance.list<Record<string, unknown>>("mem:memories"),
+      kvInstance.list<Record<string, unknown>>("mem:health").catch(() => []),
+    ]);
     return resourceContents(uri, {
       sessionCount: sessions.length,
       memoryCount: memories.length,
-      healthStatus: "local-fallback",
+      healthStatus: healthData.length > 0 ? "available" : "no-data",
     });
   }
 
@@ -855,6 +897,7 @@ export async function handlePromptGet(
 }
 
 const transport = createStdioTransport(async (method, params) => {
+  const requestParams = isRecord(params) ? params : {};
   switch (method) {
     case "initialize":
       return {
@@ -883,20 +926,22 @@ const transport = createStdioTransport(async (method, params) => {
       return handleResourceTemplatesList();
 
     case "resources/read":
-      return handleResourceRead(params.uri as string);
+      return handleResourceRead(requestParams["uri"] as string);
 
     case "prompts/list":
       return handlePromptsList();
 
     case "prompts/get":
       return handlePromptGet(
-        params.name as string,
-        (params.arguments as Record<string, unknown>) || {},
+        requestParams["name"] as string,
+        isRecord(requestParams["arguments"]) ? requestParams["arguments"] : {},
       );
 
     case "tools/call": {
-      const toolName = params.name as string;
-      const toolArgs = (params.arguments as Record<string, unknown>) || {};
+      const toolName = requestParams["name"] as string;
+      const toolArgs = isRecord(requestParams["arguments"])
+        ? requestParams["arguments"]
+        : {};
       try {
         return await handleToolCall(toolName, toolArgs);
       } catch (err) {

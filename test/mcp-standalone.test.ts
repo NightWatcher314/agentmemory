@@ -487,7 +487,21 @@ describe("standalone MCP resources and prompts", () => {
     const result = await handleResourceRead("agentmemory://status", kv);
     expect(result.contents[0].mimeType).toBe("application/json");
     expect(JSON.parse(result.contents[0].text)).toEqual(
-      expect.objectContaining({ sessionCount: 1, memoryCount: 1 }),
+      expect.objectContaining({
+        sessionCount: 1,
+        memoryCount: 1,
+        healthStatus: "no-data",
+      }),
+    );
+  });
+
+  it("reports available health when local fallback storage has health data", async () => {
+    const { handleResourceRead } = await import("../src/mcp/standalone.js");
+    const kv = new InMemoryKV();
+    await kv.set("mem:health", "latest", { status: "healthy" });
+    const result = await handleResourceRead("agentmemory://status", kv);
+    expect(JSON.parse(result.contents[0].text)).toEqual(
+      expect.objectContaining({ healthStatus: "available" }),
     );
   });
 
