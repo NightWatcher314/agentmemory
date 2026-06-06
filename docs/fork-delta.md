@@ -1,6 +1,6 @@
 # Fork Delta from Upstream
 
-Last reviewed: 2026-05-22
+Last reviewed: 2026-06-06
 
 This document records the intentional differences carried by the
 `NightWatcher314/agentmemory` fork relative to upstream `rohitg00/agentmemory`.
@@ -69,25 +69,7 @@ Common merge conflict pattern: upstream may simplify `src/mcp/standalone.ts` and
 remove resource/prompt fallback logic. Re-apply or preserve the local handlers
 unless upstream has equivalent stdio MCP support.
 
-### 3. Viewer password gate
-
-The fork adds an optional password gate for the standalone viewer.
-
-Preserve:
-
-- `.env.example`: `AGENTMEMORY_VIEWER_PASSWORD`
-- `src/viewer/server.ts`: login page, password verification, signed HttpOnly
-  viewer session cookie, protected viewer/proxy routes.
-- `test/viewer-security.test.ts`: password gate coverage.
-
-Related commit:
-
-- `be0146e` — added viewer password login.
-
-Common merge conflict pattern: upstream viewer changes should be merged around
-this auth gate rather than replacing `src/viewer/server.ts` wholesale.
-
-### 4. Documentation-first memory skills
+### 3. Documentation-first memory skills
 
 The fork carries more Codex/plugin skills than upstream and makes project docs
 the source of truth for project-specific knowledge.
@@ -109,7 +91,7 @@ Common merge conflict pattern: upstream may report fewer skills and delete the
 local skill files. Keep local skills unless upstream has adopted equivalent
 workflows.
 
-### 5. Local Docker/source-build deployment
+### 4. Local Docker/source-build deployment
 
 The fork removes the upstream Coolify template and keeps a local source-build
 Docker path.
@@ -137,7 +119,7 @@ rewrite `docker-compose.yml` around a different iii-engine/Coolify deployment
 shape. Keep local deployment files unless explicitly choosing to adopt upstream
 Coolify deployment.
 
-### 6. Fork maintenance docs and sync policy
+### 5. Fork maintenance docs and sync policy
 
 The fork keeps local maintenance docs for release and upstream sync.
 
@@ -170,11 +152,16 @@ Related commits:
 | `3da618f` | 2026-05-17 | Docs/release | Documents fork npm publishing workflow. |
 | `b69efa6` | 2026-05-18 | Package/docs | Points README/package docs at fork packages. |
 | `129031f` | 2026-05-18 | Docker | Fixes entrypoint package path for fork package names. |
-| `be0146e` | 2026-05-18 | Viewer/security | Adds optional viewer password login. |
 | `980f75f` | 2026-05-18 | Skills | Refines memory skills around project-doc source of truth. |
 | `f504bd2` | 2026-05-19 | Skills | Adds `learn-codebase` skill. |
 | `d084586` | 2026-05-19 | Docker | Avoids postinstall scripts during Docker build. |
 | `3db4fd0` | 2026-05-19 | Docker | Improves Docker dependency cache. |
+
+### Dropped fork deltas
+
+| Commit | Date | Area | Dropped because |
+|---|---:|---|---|
+| `be0146e` | 2026-05-18 | Viewer/security | Dropped on 2026-06-06; upstream now provides the non-loopback viewer safety model through `AGENTMEMORY_VIEWER_HOST`, `AGENTMEMORY_SECRET`, and `VIEWER_ALLOWED_HOSTS`, so the fork-only `AGENTMEMORY_VIEWER_PASSWORD` login layer is no longer carried. |
 
 ### Merge commits
 
@@ -197,7 +184,6 @@ These are historical upstream-sync markers, not standalone features:
    - package names and repository URLs;
    - plugin skill counts and skill files;
    - `src/mcp/standalone.ts` resource/prompt handlers;
-   - viewer password gate;
    - Docker/local deployment files.
 7. Review operator-visible changes from upstream:
    - env vars;
