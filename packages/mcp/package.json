@@ -1,6 +1,6 @@
 {
   "name": "@nightwatcher314/agentmemory-mcp",
-  "version": "0.9.25-nightwatcher.0",
+  "version": "0.9.27-nightwatcher.0",
   "description": "Standalone MCP server for agentmemory — thin shim that re-exposes @nightwatcher314/agentmemory's MCP entrypoint",
   "type": "module",
   "bin": {
@@ -28,7 +28,7 @@
   "homepage": "https://github.com/NightWatcher314/agentmemory#readme",
   "bugs": "https://github.com/NightWatcher314/agentmemory/issues",
   "dependencies": {
-    "@nightwatcher314/agentmemory": "0.9.25-nightwatcher.0"
+    "@nightwatcher314/agentmemory": "0.9.27-nightwatcher.0"
   },
   "publishConfig": {
     "access": "public",
