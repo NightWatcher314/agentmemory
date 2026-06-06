@@ -45,8 +45,19 @@ function isAuthorized(auth: unknown, secret: string | undefined): boolean {
   return (
     typeof auth === "string" &&
     candidateSecrets(secret).some((candidate) =>
-      timingSafeCompare(auth, `Bearer ${candidate}`),
+      timingSafeCompare(auth, `Bearer ${candidate}`) ||
+      timingSafeCompare(auth, candidate),
     )
+  );
+}
+
+function requestAuthHeader(headers: Record<string, unknown> | undefined): unknown {
+  return (
+    headers?.["authorization"] ||
+    headers?.["Authorization"] ||
+    headers?.["x-agentmemory-secret"] ||
+    headers?.["X-Agentmemory-Secret"] ||
+    headers?.["X-AgentMemory-Secret"]
   );
 }
 
@@ -56,7 +67,7 @@ function checkAuth(
 ): Response | null {
   const candidates = candidateSecrets(secret);
   if (candidates.length === 0) return null;
-  const auth = req.headers?.["authorization"] || req.headers?.["Authorization"];
+  const auth = requestAuthHeader(req.headers);
   if (!isAuthorized(auth, secret)) {
     return { status_code: 401, body: { error: "unauthorized" } };
   }
@@ -162,7 +173,7 @@ export function registerApiTriggers(
       const candidates = candidateSecrets(secret);
       if (candidates.length === 0) return { action: "continue" };
       const headers = input?.request?.headers || {};
-      const auth = headers["authorization"] || headers["Authorization"];
+      const auth = requestAuthHeader(headers);
       if (!isAuthorized(auth, secret)) {
         return {
           action: "respond",

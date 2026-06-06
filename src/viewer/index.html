@@ -1252,6 +1252,9 @@
         if (viewerToken && !headers.Authorization && !headers.authorization) {
           headers.Authorization = 'Bearer ' + viewerToken;
         }
+        if (viewerToken && !headers['X-Agentmemory-Secret'] && !headers['x-agentmemory-secret']) {
+          headers['X-Agentmemory-Secret'] = viewerToken;
+        }
         var fetchOpts = Object.assign({}, opts || {}, { headers: headers });
         var res = await fetch(url, fetchOpts);
         if (!res.ok) {
