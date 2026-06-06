@@ -36,73 +36,16 @@ function parseOptionalInt(raw: unknown): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-function candidateSecrets(secret: string | undefined): string[] {
-  return [secret, process.env.AGENTMEMORY_SECRET]
-    .filter((s): s is string => typeof s === "string" && s.trim().length > 0);
-}
-
-function authStrings(auth: unknown): string[] {
-  if (typeof auth === "string") return [auth];
-  if (Array.isArray(auth)) return auth.filter((item): item is string => typeof item === "string");
-  return [];
-}
-
-function isAuthorized(auth: unknown, secret: string | undefined): boolean {
-  return authStrings(auth).some((value) =>
-    candidateSecrets(secret).some((candidate) =>
-      timingSafeCompare(value, `Bearer ${candidate}`) ||
-      timingSafeCompare(value, candidate),
-    ),
-  );
-}
-
-function requestAuthHeader(headers: Record<string, unknown> | undefined): unknown {
-  return (
-    headers?.["authorization"] ||
-    headers?.["Authorization"] ||
-    headers?.["x-agentmemory-secret"] ||
-    headers?.["X-Agentmemory-Secret"] ||
-    headers?.["X-AgentMemory-Secret"]
-  );
-}
-
-function requestHeaders(input: unknown): Record<string, unknown> | undefined {
-  if (!input || typeof input !== "object") return undefined;
-  const record = input as Record<string, unknown>;
-  const headers = record.headers;
-  if (headers && typeof headers === "object") return headers as Record<string, unknown>;
-  const request = record.request;
-  if (request && typeof request === "object") {
-    const requestHeaders = (request as Record<string, unknown>).headers;
-    if (requestHeaders && typeof requestHeaders === "object") {
-      return requestHeaders as Record<string, unknown>;
-    }
-  }
-  const payload = record.payload;
-  if (payload && typeof payload === "object") {
-    const payloadHeaders = (payload as Record<string, unknown>).headers;
-    if (payloadHeaders && typeof payloadHeaders === "object") {
-      return payloadHeaders as Record<string, unknown>;
-    }
-  }
-  const context = record.context;
-  if (context && typeof context === "object") {
-    const contextHeaders = (context as Record<string, unknown>).headers;
-    if (contextHeaders && typeof contextHeaders === "object") {
-      return contextHeaders as Record<string, unknown>;
-    }
-  }
-  return undefined;
-}
-
 function checkAuth(
   req: ApiRequest,
   secret: string | undefined,
 ): Response | null {
-  const candidates = candidateSecrets(secret);
-  if (candidates.length === 0) return null;
-  const auth = requestAuthHeader(requestHeaders(req));
-  if (!isAuthorized(auth, secret)) {
+  if (!secret) return null;
+  const auth = req.headers?.["authorization"] || req.headers?.["Authorization"];
+  if (
+    typeof auth !== "string" ||
+    !timingSafeCompare(auth, `Bearer ${secret}`)
+  ) {
     return { status_code: 401, body: { error: "unauthorized" } };
   }
   return null;
@@ -136,7 +79,7 @@ function graphDisabledResponse(): Response {
     error: "Knowledge graph not enabled",
     flag: "GRAPH_EXTRACTION_ENABLED",
     enableHow: "Set GRAPH_EXTRACTION_ENABLED=true and restart. Requires an LLM provider key.",
-    docsHref: "https://github.com/NightWatcher314/agentmemory#knowledge-graph",
+    docsHref: "https://github.com/rohitg00/agentmemory#knowledge-graph",
   });
 }
 
@@ -145,7 +88,7 @@ function consolidationDisabledResponse(): Response {
     error: "Consolidation pipeline not enabled",
     flag: "CONSOLIDATION_ENABLED",
     enableHow: "Set CONSOLIDATION_ENABLED=true and restart. Requires an LLM provider key.",
-    docsHref: "https://github.com/NightWatcher314/agentmemory#consolidation",
+    docsHref: "https://github.com/rohitg00/agentmemory#consolidation",
   });
 }
 
@@ -201,11 +144,16 @@ export function registerApiTriggers(
 ): void {
   sdk.registerFunction(
     "middleware::api-auth",
-    async (input: unknown) => {
-      const candidates = candidateSecrets(secret);
-      if (candidates.length === 0) return { action: "continue" };
-      const auth = requestAuthHeader(requestHeaders(input));
-      if (!isAuthorized(auth, secret)) {
+    async (input: {
+      request?: { headers?: Record<string, string | undefined> };
+    }) => {
+      if (!secret) return { action: "continue" };
+      const headers = input?.request?.headers || {};
+      const auth = headers["authorization"] || headers["Authorization"];
+      if (
+        typeof auth !== "string" ||
+        !timingSafeCompare(auth, `Bearer ${secret}`)
+      ) {
         return {
           action: "respond",
           response: { status_code: 401, body: { error: "unauthorized" } },
@@ -243,7 +191,7 @@ export function registerApiTriggers(
           needsLlm: true,
           description: "Extracts entities and relations from observations into a knowledge graph.",
           enableHow: "Set GRAPH_EXTRACTION_ENABLED=true and provide an LLM key, then restart.",
-          docsHref: "https://github.com/NightWatcher314/agentmemory#knowledge-graph",
+          docsHref: "https://github.com/rohitg00/agentmemory#knowledge-graph",
         },
         {
           key: "CONSOLIDATION_ENABLED",
@@ -254,7 +202,7 @@ export function registerApiTriggers(
           needsLlm: true,
           description: "Periodically summarizes sessions into semantic facts + procedures.",
           enableHow: "Set CONSOLIDATION_ENABLED=true and provide an LLM key, then restart.",
-          docsHref: "https://github.com/NightWatcher314/agentmemory#consolidation",
+          docsHref: "https://github.com/rohitg00/agentmemory#consolidation",
         },
         {
           key: "AGENTMEMORY_AUTO_COMPRESS",
@@ -265,7 +213,7 @@ export function registerApiTriggers(
           needsLlm: true,
           description: "Every observation is compressed by the LLM for richer summaries (costs tokens). OFF uses zero-LLM synthetic compression.",
           enableHow: "Set AGENTMEMORY_AUTO_COMPRESS=true and provide an LLM key.",
-          docsHref: "https://github.com/NightWatcher314/agentmemory/issues/138",
+          docsHref: "https://github.com/rohitg00/agentmemory/issues/138",
         },
         {
           key: "AGENTMEMORY_INJECT_CONTEXT",
@@ -276,7 +224,7 @@ export function registerApiTriggers(
           needsLlm: false,
           description: "Hooks write recalled context into Claude Code's conversation. OFF captures in the background without injecting.",
           enableHow: "Set AGENTMEMORY_INJECT_CONTEXT=true and restart.",
-          docsHref: "https://github.com/NightWatcher314/agentmemory/issues/143",
+          docsHref: "https://github.com/rohitg00/agentmemory/issues/143",
         },
       ];
       return {

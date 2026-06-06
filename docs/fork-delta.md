@@ -102,6 +102,9 @@ Preserve:
 - `.dockerignore`
 - `docker-compose.yml` local build/bind-port shape
 - `deploy/entrypoint.sh` package path adjustments for fork package names
+- Docker entrypoint syncing an explicitly configured `AGENTMEMORY_SECRET` into
+  the persistent `/data/.hmac` file before startup, so compose `.env` remains
+  the deployment source of truth for the upstream Bearer auth model.
 - Docker build behavior that avoids install-time postinstall scripts and keeps
   dependency cache layers efficient.
 
@@ -162,6 +165,7 @@ Related commits:
 | Commit | Date | Area | Dropped because |
 |---|---:|---|---|
 | `be0146e` | 2026-05-18 | Viewer/security | Dropped on 2026-06-06; upstream now provides the non-loopback viewer safety model through `AGENTMEMORY_VIEWER_HOST`, `AGENTMEMORY_SECRET`, and `VIEWER_ALLOWED_HOSTS`, so the fork-only `AGENTMEMORY_VIEWER_PASSWORD` login layer is no longer carried. |
+| `a1d3c73` / `e8957e4` / `8686705` / `ddb0ee7` / `d03e785` | 2026-06-06 | Viewer/API auth | Dropped on 2026-06-06; after confirming the root cause was Docker `/data/.hmac` overriding `.env`, the fork returned viewer/API auth source files to upstream behavior and kept only the deployment-level secret sync in `deploy/entrypoint.sh`. |
 
 ### Merge commits
 

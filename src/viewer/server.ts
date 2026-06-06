@@ -126,9 +126,7 @@ export function requireInboundBearer(
   if (typeof authHeader !== "string") return false;
   const match = /^Bearer\s+(\S+)\s*$/i.exec(authHeader);
   if (!match) return false;
-  return [secret, process.env.AGENTMEMORY_SECRET]
-    .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
-    .some((candidate) => timingSafeCompare(match[1], candidate));
+  return timingSafeCompare(match[1], secret);
 }
 
 function corsHeaders(req: IncomingMessage): Record<string, string> {
