@@ -41,13 +41,18 @@ function candidateSecrets(secret: string | undefined): string[] {
     .filter((s): s is string => typeof s === "string" && s.trim().length > 0);
 }
 
+function authStrings(auth: unknown): string[] {
+  if (typeof auth === "string") return [auth];
+  if (Array.isArray(auth)) return auth.filter((item): item is string => typeof item === "string");
+  return [];
+}
+
 function isAuthorized(auth: unknown, secret: string | undefined): boolean {
-  return (
-    typeof auth === "string" &&
+  return authStrings(auth).some((value) =>
     candidateSecrets(secret).some((candidate) =>
-      timingSafeCompare(auth, `Bearer ${candidate}`) ||
-      timingSafeCompare(auth, candidate),
-    )
+      timingSafeCompare(value, `Bearer ${candidate}`) ||
+      timingSafeCompare(value, candidate),
+    ),
   );
 }
 
