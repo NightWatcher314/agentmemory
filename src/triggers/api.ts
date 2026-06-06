@@ -61,13 +61,42 @@ function requestAuthHeader(headers: Record<string, unknown> | undefined): unknow
   );
 }
 
+function requestHeaders(input: unknown): Record<string, unknown> | undefined {
+  if (!input || typeof input !== "object") return undefined;
+  const record = input as Record<string, unknown>;
+  const headers = record.headers;
+  if (headers && typeof headers === "object") return headers as Record<string, unknown>;
+  const request = record.request;
+  if (request && typeof request === "object") {
+    const requestHeaders = (request as Record<string, unknown>).headers;
+    if (requestHeaders && typeof requestHeaders === "object") {
+      return requestHeaders as Record<string, unknown>;
+    }
+  }
+  const payload = record.payload;
+  if (payload && typeof payload === "object") {
+    const payloadHeaders = (payload as Record<string, unknown>).headers;
+    if (payloadHeaders && typeof payloadHeaders === "object") {
+      return payloadHeaders as Record<string, unknown>;
+    }
+  }
+  const context = record.context;
+  if (context && typeof context === "object") {
+    const contextHeaders = (context as Record<string, unknown>).headers;
+    if (contextHeaders && typeof contextHeaders === "object") {
+      return contextHeaders as Record<string, unknown>;
+    }
+  }
+  return undefined;
+}
+
 function checkAuth(
   req: ApiRequest,
   secret: string | undefined,
 ): Response | null {
   const candidates = candidateSecrets(secret);
   if (candidates.length === 0) return null;
-  const auth = requestAuthHeader(req.headers);
+  const auth = requestAuthHeader(requestHeaders(req));
   if (!isAuthorized(auth, secret)) {
     return { status_code: 401, body: { error: "unauthorized" } };
   }
@@ -167,13 +196,10 @@ export function registerApiTriggers(
 ): void {
   sdk.registerFunction(
     "middleware::api-auth",
-    async (input: {
-      request?: { headers?: Record<string, string | undefined> };
-    }) => {
+    async (input: unknown) => {
       const candidates = candidateSecrets(secret);
       if (candidates.length === 0) return { action: "continue" };
-      const headers = input?.request?.headers || {};
-      const auth = requestAuthHeader(headers);
+      const auth = requestAuthHeader(requestHeaders(input));
       if (!isAuthorized(auth, secret)) {
         return {
           action: "respond",
