@@ -1249,15 +1249,8 @@
         var url = REST + '/agentmemory/' + path;
         var headers = Object.assign({ 'Cache-Control': 'no-cache' }, (opts && opts.headers) || {});
         var viewerToken = getViewerToken();
-        if (viewerToken) {
-          var joiner = url.indexOf('?') === -1 ? '?' : '&';
-          url += joiner + 'agentmemory_secret=' + encodeURIComponent(viewerToken);
-        }
         if (viewerToken && !headers.Authorization && !headers.authorization) {
           headers.Authorization = 'Bearer ' + viewerToken;
-        }
-        if (viewerToken && !headers['X-Agentmemory-Secret'] && !headers['x-agentmemory-secret']) {
-          headers['X-Agentmemory-Secret'] = viewerToken;
         }
         var fetchOpts = Object.assign({}, opts || {}, { headers: headers });
         var res = await fetch(url, fetchOpts);

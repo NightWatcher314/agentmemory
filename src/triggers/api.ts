@@ -66,50 +66,6 @@ function requestAuthHeader(headers: Record<string, unknown> | undefined): unknow
   );
 }
 
-function firstString(value: unknown): string | undefined {
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) {
-    const first = value.find((item) => typeof item === "string");
-    return typeof first === "string" ? first : undefined;
-  }
-  return undefined;
-}
-
-function requestAuthToken(input: unknown): unknown {
-  if (!input || typeof input !== "object") return undefined;
-  const record = input as Record<string, unknown>;
-  const header = requestAuthHeader(requestHeaders(record));
-  if (header) return header;
-
-  const query = record.query_params;
-  if (query && typeof query === "object") {
-    const q = query as Record<string, unknown>;
-    return (
-      firstString(q.agentmemory_secret) ||
-      firstString(q.AGENTMEMORY_SECRET) ||
-      firstString(q.secret) ||
-      firstString(q.token)
-    );
-  }
-
-  const body = record.body;
-  if (body && typeof body === "object") {
-    const b = body as Record<string, unknown>;
-    return (
-      firstString(b.agentmemory_secret) ||
-      firstString(b.AGENTMEMORY_SECRET) ||
-      firstString(b.secret) ||
-      firstString(b.token)
-    );
-  }
-
-  const payload = record.payload;
-  if (payload && typeof payload === "object") return requestAuthToken(payload);
-  const request = record.request;
-  if (request && typeof request === "object") return requestAuthToken(request);
-  return undefined;
-}
-
 function requestHeaders(input: unknown): Record<string, unknown> | undefined {
   if (!input || typeof input !== "object") return undefined;
   const record = input as Record<string, unknown>;
@@ -145,7 +101,7 @@ function checkAuth(
 ): Response | null {
   const candidates = candidateSecrets(secret);
   if (candidates.length === 0) return null;
-  const auth = requestAuthToken(req);
+  const auth = requestAuthHeader(requestHeaders(req));
   if (!isAuthorized(auth, secret)) {
     return { status_code: 401, body: { error: "unauthorized" } };
   }
@@ -248,7 +204,7 @@ export function registerApiTriggers(
     async (input: unknown) => {
       const candidates = candidateSecrets(secret);
       if (candidates.length === 0) return { action: "continue" };
-      const auth = requestAuthToken(input);
+      const auth = requestAuthHeader(requestHeaders(input));
       if (!isAuthorized(auth, secret)) {
         return {
           action: "respond",

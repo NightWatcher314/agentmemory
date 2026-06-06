@@ -117,7 +117,13 @@ if [ -d "$DIST_DIR" ]; then
   chown -R "$RUN_AS" "$DIST_DIR"
 fi
 
-if [ ! -s "$HMAC_FILE" ]; then
+CONFIGURED_SECRET="${AGENTMEMORY_SECRET:-}"
+if [ -n "$CONFIGURED_SECRET" ]; then
+  umask 077
+  printf '%s\n' "$CONFIGURED_SECRET" > "$HMAC_FILE"
+  chmod 600 "$HMAC_FILE"
+  chown "$RUN_AS" "$HMAC_FILE"
+elif [ ! -s "$HMAC_FILE" ]; then
   SECRET="$(openssl rand -hex 32)"
   umask 077
   printf '%s\n' "$SECRET" > "$HMAC_FILE"
