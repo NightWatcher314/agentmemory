@@ -79,8 +79,8 @@ Preserve these local skills and refinements:
 - `plugin/skills/document-project-memory/SKILL.md`
 - `plugin/skills/learn-codebase/SKILL.md`
 - refined `remember`, `recall`, `forget`, and `session-history` skills
-- plugin manifest description advertising 10 skills when the local set contains
-  10 skills.
+- plugin manifest description advertising 9 skills when the local set contains
+  9 skills.
 
 Related commits:
 

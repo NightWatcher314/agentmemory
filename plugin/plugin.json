@@ -1,7 +1,7 @@
 {
   "name": "agentmemory",
   "version": "0.9.27-nightwatcher.0",
-  "description": "Persistent memory for AI coding agents -- captures tool usage, compresses via LLM, injects context into future sessions. 12 hooks, 53 MCP tools, 10 skills, real-time viewer.",
+  "description": "Persistent memory for AI coding agents -- captures tool usage, compresses via LLM, injects context into future sessions. 12 hooks, 53 MCP tools, 9 skills, real-time viewer.",
   "author": {
     "name": "NightWatcher314",
     "url": "https://github.com/NightWatcher314"

@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>agentmemory 记忆系统解析</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2421;
+      --muted: #66706a;
+      --line: #d9ded8;
+      --paper: #f7f5ef;
+      --wash: #ebe7db;
+      --panel: #fffdf7;
+      --accent: #0d7c66;
+      --accent-dark: #075846;
+      --signal: #b33b2e;
+      --blue: #245e8f;
+      --gold: #a66a00;
+      --violet: #6f4c8f;
+      --shadow: 0 18px 50px rgba(28, 36, 31, 0.11);
+      --mono: "SFMono-Regular", "Cascadia Code", "Liberation Mono", Menlo, monospace;
+      --serif: Georgia, "Times New Roman", "Noto Serif CJK SC", serif;
+      --sans: "Aptos", "Segoe UI", "Noto Sans CJK SC", sans-serif;
+    }
+
+    ∞∞ * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(90deg, rgba(31, 36, 33, 0.045) 1px, transparent 1px) 0 0 / 32px 32px,
+        linear-gradient(rgba(31, 36, 33, 0.035) 1px, transparent 1px) 0 0 / 32px 32px,
+        radial-gradient(circle at 80% 0%, rgba(13, 124, 102, 0.10), transparent 26rem),
+        var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.58;
+    }
+
+    a {
+      color: var(--accent-dark);
+      text-decoration-color: rgba(13, 124, 102, 0.3);
+      text-underline-offset: 3px;
+    }
+
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 36px 22px 72px;
+    }
+
+    .hero {
+      min-height: 74vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 42px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 28px 0 54px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--accent-dark);
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      margin: 0 0 22px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 38px;
+      height: 2px;
+      background: var(--accent);
+      display: inline-block;
+    }
+
+    h1 {
+      font-family: var(--serif);
+      font-size: clamp(46px, 7vw, 88px);
+      line-height: 0.96;
+      letter-spacing: 0;
+      margin: 0;
+      max-width: 12ch;
+    }
+
+    h1 span {
+      display: block;
+    }
+
+    h1 .han {
+      font-size: clamp(40px, 6.2vw, 78px);
+      white-space: nowrap;
+    }
+
+    .hero-copy {
+      margin-top: 24px;
+      font-size: 19px;
+      max-width: 700px;
+      color: #3a413d;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .tag {
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 247, 0.72);
+      padding: 8px 11px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #36403b;
+      border-radius: 4px;
+    }
+
+    .machine {
+      background: #18211d;
+      color: #ecf3eb;
+      border: 1px solid #2d3b35;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .machine::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 18px 18px;
+      pointer-events: none;
+    }
+
+    .machine>* {
+      position: relative;
+    }
+
+    .machine-title {
+      font-family: var(--mono);
+      color: #9bd6c7;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .layer {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 12px;
+      align-items: stretch;
+      min-height: 54px;
+    }
+
+    .layer b,
+    .layer span {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid rgba(236, 243, 235, 0.18);
+      background: rgba(255, 255, 255, 0.055);
+      font-size: 13px;
+    }
+
+    .layer b {
+      color: #f7d58a;
+      font-family: var(--mono);
+      font-weight: 650;
+    }
+
+    .layer span {
+      color: #dce8e1;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 14px 0;
+      backdrop-filter: blur(14px);
+      background: rgba(247, 245, 239, 0.78);
+      border-bottom: 1px solid rgba(217, 222, 216, 0.75);
+    }
+
+    nav a {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #33413b;
+      text-decoration: none;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 247, 0.7);
+      border-radius: 4px;
+      padding: 7px 10px;
+    }
+
+    section {
+      padding: 54px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
+      gap: 38px;
+      align-items: start;
+      margin-bottom: 28px;
+    }
+
+    h2 {
+      font-family: var(--serif);
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1;
+      letter-spacing: 0;
+      margin: 0;
+    }
+
+    .section-head p {
+      margin: 0;
+      font-size: 17px;
+      color: #45504a;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tile {
+      background: rgba(255, 253, 247, 0.82);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 18px;
+      min-height: 142px;
+    }
+
+    .tile strong {
+      color: var(--accent-dark);
+    }
+
+    .tile p {
+      margin: 7px 0 0;
+      color: #48534d;
+      font-size: 14px;
+    }
+
+    .code {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #25302b;
+      background: #ebe7db;
+      border: 1px solid #d9d2c4;
+      padding: 2px 5px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .diagram {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(160px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+      min-width: 850px;
+    }
+
+    .flow-item {
+      position: relative;
+      border: 1px solid #cdd5ce;
+      background: #fbfaf5;
+      padding: 14px;
+      min-height: 122px;
+      border-radius: 6px;
+    }
+
+    .flow-item::after {
+      content: ">";
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-weight: 800;
+      font-size: 18px;
+      z-index: 1;
+    }
+
+    .flow-item:last-child::after {
+      display: none;
+    }
+
+    .flow-item .num {
+      font-family: var(--mono);
+      color: var(--signal);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .flow-item p {
+      margin: 0;
+      color: #47534d;
+      font-size: 13px;
+    }
+
+    .map {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .column {
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 247, 0.78);
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .column h3 {
+      font-family: var(--mono);
+      color: var(--accent-dark);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .list li {
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      color: #46534c;
+      font-size: 14px;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .state {
+      border: 1px solid #d4dbd4;
+      background: linear-gradient(180deg, #fffdf7, #f2efe6);
+      padding: 12px;
+      border-radius: 6px;
+      min-height: 118px;
+    }
+
+    .state .scope {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--blue);
+      overflow-wrap: anywhere;
+    }
+
+    .state p {
+      margin: 7px 0 0;
+      font-size: 13px;
+      color: #4a544f;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 253, 247, 0.82);
+      border: 1px solid var(--line);
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 13px;
+      font-size: 14px;
+    }
+
+    th {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent-dark);
+      background: #eeeade;
+      font-weight: 650;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .swimlane {
+      display: grid;
+      grid-template-columns: 150px repeat(4, minmax(150px, 1fr));
+      gap: 8px;
+      min-width: 850px;
+    }
+
+    .lane-label {
+      font-family: var(--mono);
+      color: var(--accent-dark);
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: #eeeade;
+      border-radius: 5px;
+      font-size: 12px;
+    }
+
+    .step {
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: #fffdf7;
+      border-radius: 5px;
+      min-height: 86px;
+      font-size: 13px;
+      color: #46524c;
+    }
+
+    .step b {
+      display: block;
+      color: #202823;
+      margin-bottom: 4px;
+    }
+
+    .callout {
+      border-left: 5px solid var(--signal);
+      background: #fff9ef;
+      padding: 18px 20px;
+      margin-top: 18px;
+      color: #3f332b;
+    }
+
+    .callout strong {
+      color: var(--signal);
+    }
+
+    .source-list {
+      columns: 2;
+      column-gap: 28px;
+      font-size: 13px;
+    }
+
+    .source-list li {
+      break-inside: avoid;
+      margin-bottom: 8px;
+    }
+
+    footer {
+      padding: 36px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+
+      .hero,
+      .section-head,
+      .map,
+      .grid,
+      .grid.two {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+      }
+
+      .state-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .source-list {
+        columns: 1;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        padding: 24px 14px 54px;
+      }
+
+      .state-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .layer {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Source-backed map · 2026-06-07</p>
+        <h1><span>agentmemory</span><span class="han">记忆系统解析</span></h1>
+        <p class="hero-copy">
+          这份页面把当前仓库里的记忆系统拆成五层：采集、归一化、存储、检索、注入。
+          它不是 Claude 会话日志索引器，而是一台带 REST、MCP、hooks、skills 和 viewer 的本地记忆服务。
+        </p>
+        <div class="hero-meta">
+          <span class="tag">53 MCP tools</span>
+          <span class="tag">128 REST endpoints</span>
+          <span class="tag">6 resources · 3 prompts</span>
+          <span class="tag">12 hooks · 9 skills</span>
+          <span class="tag">iii-engine state store</span>
+        </div>
+      </div>
+
+      <aside class="machine" aria-label="agentmemory stack">
+        <div class="machine-title">runtime shape</div>
+        <div class="stack">
+          <div class="layer"><b>Agents</b><span>Claude Code, Codex, Copilot CLI, OpenClaw, Hermes, Cursor-style MCP
+              hosts</span></div>
+          <div class="layer"><b>Surfaces</b><span>hooks, skills, MCP stdio shim, REST API, viewer</span></div>
+          <div class="layer"><b>Worker</b><span>TypeScript functions registered as <code>mem::*</code>,
+              <code>api::*</code>, <code>mcp::*</code></span></div>
+          <div class="layer"><b>Engine</b><span>iii-sdk over iii-engine, Function/Trigger/StateModule contract</span>
+          </div>
+          <div class="layer"><b>State</b><span>sessions, observations, memories, summaries, indexes, graph, lessons,
+              actions, audit</span></div>
+        </div>
+      </aside>
+    </header>
+
+    <nav aria-label="sections">
+      <a href="#summary">总览</a>
+      <a href="#capture">采集链路</a>
+      <a href="#state">状态模型</a>
+      <a href="#retrieval">检索与注入</a>
+      <a href="#memory-types">记忆分类</a>
+      <a href="#risks">维护要点</a>
+      <a href="#sources">源码锚点</a>
+    </nav>
+
+    <section id="summary">
+      <div class="section-head">
+        <h2>一眼看懂</h2>
+        <p>
+          agentmemory 的核心不是一个单表 memory，而是一组围绕 coding session 运转的状态集合。
+          hooks 把事件写成 observation；显式保存和自动归纳把 observation 提炼为 memory；
+          检索层把 BM25、向量和图关系融合；注入层再按预算把可用上下文拼回 agent。
+        </p>
+      </div>
+
+      <div class="map">
+        <div class="column">
+          <h3>输入面</h3>
+          <ul class="list">
+            <li><span class="code">src/hooks/*.ts</span> 监听会话、提示词、工具调用、失败、停止、子任务等生命周期。</li>
+            <li><span class="code">/agentmemory/observe</span> 接收 hook payload 并转给 <span
+                class="code">mem::observe</span>。</li>
+            <li><span class="code">memory_save</span> 或 <span class="code">/agentmemory/remember</span> 显式写长期记忆。</li>
+            <li><span class="code">session/start</span> 建 session，并可返回启动上下文。</li>
+          </ul>
+        </div>
+        <div class="column">
+          <h3>处理层</h3>
+          <ul class="list">
+            <li><span class="code">mem::observe</span> 做隐私清理、去重、图片抽取、session 计数和 raw stream。</li>
+            <li>默认用 synthetic compression，不配置 LLM 也能得到可检索的 compressed observation。</li>
+            <li><span class="code">mem::remember</span> 对长期记忆做相似度 supersede、版本化、project/agent scope。</li>
+            <li>索引层维护 BM25、可选 vector index、可选 graph retrieval。</li>
+          </ul>
+        </div>
+        <div class="column">
+          <h3>输出面</h3>
+          <ul class="list">
+            <li><span class="code">mem::context</span> 输出 <span class="code">&lt;agentmemory-context&gt;</span> 包，用于注入。
+            </li>
+            <li><span class="code">memory_smart_search</span> 返回 compact results，可再 expand。</li>
+            <li>viewer 通过 stream 和 REST 展示 sessions、observations、graph、health。</li>
+            <li>skills 给 agent 行为提示，MCP tools 给 agent 可调用能力。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="capture">
+      <div class="section-head">
+        <h2>采集链路</h2>
+        <p>
+          每次工具调用或用户提示并不是直接变成长久记忆。它先进入 observation 流，经过清洗和压缩，
+          变成可被搜索的事实片段。长期 memory 是第二阶段的产物，可以显式保存，也可以由 consolidation 归纳。
+        </p>
+      </div>
+
+      <div class="diagram" aria-label="capture flow">
+        <div class="flow">
+          <div class="flow-item">
+            <div class="num">01 hook</div>
+            <h3>Agent 事件</h3>
+            <p>session start、prompt submit、post tool use、stop 等 hook 脚本读取 stdin JSON。</p>
+          </div>
+          <div class="flow-item">
+            <div class="num">02 REST</div>
+            <h3>HTTP 边界</h3>
+            <p>hook 调用 <span class="code">/agentmemory/observe</span>，API 层校验 sessionId、project、cwd、timestamp。</p>
+          </div>
+          <div class="flow-item">
+            <div class="num">03 raw</div>
+            <h3>RawObservation</h3>
+            <p><span class="code">mem::observe</span> 脱敏、去重、抽取 toolName、prompt、图片引用，然后写 KV。</p>
+          </div>
+          <div class="flow-item">
+            <div class="num">04 compressed</div>
+            <h3>CompressedObservation</h3>
+            <p>默认 synthetic；开启自动压缩时走 LLM。结果包含 title、facts、narrative、concepts、files。</p>
+          </div>
+          <div class="flow-item">
+            <div class="num">05 indexed</div>
+            <h3>可检索资产</h3>
+            <p>写入 BM25；若有 embedding provider，也写 vector index；并通过 stream 推给 viewer。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>关键点：</strong>
+        observation 是“发生过什么”，memory 是“应该长期记住什么”。这两者在 KV 里分开存，但都会进入检索索引。
+      </div>
+    </section>
+
+    <section id="state">
+      <div class="section-head">
+        <h2>状态模型</h2>
+        <p>
+          状态不是一个数据库表，而是很多 KV scope。核心 scope 定义在 <span class="code">src/state/schema.ts</span>。
+          其中 session 和 observation 是时间线，memory 和 lessons 是长期知识，index/graph/facets/actions 是增强层。
+        </p>
+      </div>
+
+      <div class="state-grid">
+        <div class="state">
+          <div class="scope">mem:sessions</div>
+          <p>会话元信息：project、cwd、startedAt、status、observationCount、agentId、firstPrompt。</p>
+        </div>
+        <div class="state">
+          <div class="scope">mem:obs:{sessionId}</div>
+          <p>该 session 下的 raw 或 compressed observations。是回放、总结、检索的主要事实来源。</p>
+        </div>
+        <div class="state">
+          <div class="scope">mem:memories</div>
+          <p>长期记忆：pattern、preference、architecture、bug、workflow、fact。支持版本和 supersede。</p>
+        </div>
+        <div class="state">
+          <div class="scope">mem:summaries</div>
+          <p>session summary：标题、叙事、关键决策、修改文件、concepts。给 context 和 handoff 使用。</p>
+        </div>
+        <div class="state">
+          <div class="scope">mem:index:bm25</div>
+          <p>关键词检索索引。启动时可从持久化快照加载，不完整时可后台重建。</p>
+        </div>
+        <div class="state">
+          <div class="scope">mem:emb:{obsId}</div>
+          <p>embedding/vector 相关状态。维度不匹配时启动会拒绝加载或按配置丢弃旧索引。</p>
+        </div>
+        <div class="state">
+          <div class="scope">mem:graph:*</div>
+          <p>实体节点、边、name index、edge key、degree、snapshot。用于图检索和关系展示。</p>
+        </div>
+        <div class="state">
+          <div class="scope">mem:lessons / mem:slots</div>
+          <p>反思提炼出的 lessons 和可 pin 的 working memory slots，会进入上下文包。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="retrieval">
+      <div class="section-head">
+        <h2>检索与注入</h2>
+        <p>
+          这里有两条容易混淆的路径：search 是主动查询，context 是被动注入。
+          前者回答“我现在要找什么”；后者回答“新 session 或 compact 前应该带哪些背景”。
+        </p>
+      </div>
+
+      <div class="grid two">
+        <div class="tile">
+          <h3>主动查询：<span class="code">memory_smart_search</span></h3>
+          <p>
+            MCP tool 进入 <span class="code">mem::smart-search</span>。
+            它调用 HybridSearch：BM25 搜关键词，vector 搜语义，graph 用实体关系扩展，再按 combined score 返回 compact result。
+            需要全文时可用 expandIds 展开 observation。
+          </p>
+        </div>
+        <div class="tile">
+          <h3>被动注入：<span class="code">mem::context</span></h3>
+          <p>
+            由 <span class="code">session/start</span>、<span class="code">pre-compact</span> 或手动 REST 调用。
+            它收集 pinned slots、project profile、lessons、最近 session summaries、重要 observations，
+            按 recency 和 token budget 拼成 XML 包。
+          </p>
+        </div>
+      </div>
+
+      <div class="diagram" style="margin-top: 18px;" aria-label="retrieval swimlane">
+        <div class="swimlane">
+          <div class="lane-label">查询流</div>
+          <div class="step"><b>MCP/REST</b>memory_smart_search 或 /smart-search</div>
+          <div class="step"><b>HybridSearch</b>BM25 + Vector + Graph</div>
+          <div class="step"><b>Scope filter</b>project / agentId 后过滤</div>
+          <div class="step"><b>Result</b>compact hits + optional expand</div>
+
+          <div class="lane-label">注入流</div>
+          <div class="step"><b>Hook/API</b>session-start、pre-compact、/context</div>
+          <div class="step"><b>Collectors</b>slots、profile、lessons、summaries、observations</div>
+          <div class="step"><b>Budget</b>按 recency 排序，超过 token budget 就跳过</div>
+          <div class="step"><b>Prompt</b>&lt;agentmemory-context project="..."&gt;</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="memory-types">
+      <div class="section-head">
+        <h2>几类“记忆”</h2>
+        <p>
+          代码里“记忆”至少有五种形态。维护时最怕把它们混为一谈，例如把 observation 当成长期 memory，
+          或期待 context 自动做完整搜索。
+        </p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>形态</th>
+            <th>源码类型 / scope</th>
+            <th>写入者</th>
+            <th>用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Session</td>
+            <td><span class="code">Session</span>, <span class="code">mem:sessions</span></td>
+            <td><span class="code">/session/start</span> 或 implicit observe</td>
+            <td>把一段工作绑定到 project/cwd/agentId，是 observation 的归属边界。</td>
+          </tr>
+          <tr>
+            <td>RawObservation</td>
+            <td><span class="code">RawObservation</span>, <span class="code">mem:obs:{sid}</span></td>
+            <td><span class="code">mem::observe</span></td>
+            <td>保留原始事件，经过脱敏和图片抽取；可被压缩覆盖为 compressed form。</td>
+          </tr>
+          <tr>
+            <td>CompressedObservation</td>
+            <td><span class="code">CompressedObservation</span>, <span class="code">mem:obs:{sid}</span></td>
+            <td>synthetic compression 或 <span class="code">mem::compress</span></td>
+            <td>面向检索的片段：title、facts、narrative、concepts、files、importance。</td>
+          </tr>
+          <tr>
+            <td>Memory</td>
+            <td><span class="code">Memory</span>, <span class="code">mem:memories</span></td>
+            <td><span class="code">mem::remember</span> 或 consolidation</td>
+            <td>长期事实、偏好、架构、工作流。支持版本、过期时间、sourceObservationIds。</td>
+          </tr>
+          <tr>
+            <td>Summary / Profile / Lesson</td>
+            <td><span class="code">mem:summaries</span>, <span class="code">mem:profiles</span>, <span
+                class="code">mem:lessons</span></td>
+            <td>summarize、profile、reflect/lesson functions</td>
+            <td>给 context 和概览使用的高密度摘要层，不替代原始 observation。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="risks">
+      <div class="section-head">
+        <h2>维护要点</h2>
+        <p>
+          这个系统的能力来自“大表面面积”：hooks、MCP、REST、viewer、skills、index、graph 都在互相接线。
+          所以维护重点不是写一个新函数，而是保持所有入口、测试和文档同步。
+        </p>
+      </div>
+
+      <div class="grid">
+        <div class="tile">
+          <h3>Scope 是安全边界</h3>
+          <p>
+            <span class="code">project</span>、<span class="code">cwd</span>、<span class="code">agentId</span>
+            决定记忆是否会跨项目或跨 agent 泄漏。显式 memory 保存时已经有 project guard。
+          </p>
+        </div>
+        <div class="tile">
+          <h3>索引是派生状态</h3>
+          <p>
+            KV 是事实来源，BM25/vector 是检索加速层。删除和升级时要考虑 index persistence，
+            否则删除的条目可能在重启后从旧索引“复活”。
+          </p>
+        </div>
+        <div class="tile">
+          <h3>注入默认保守</h3>
+          <p>
+            <span class="code">AGENTMEMORY_INJECT_CONTEXT</span> 默认关闭部分热路径注入，
+            是为了避免每次工具调用都隐式消耗大量 token。
+          </p>
+        </div>
+        <div class="tile">
+          <h3>LLM 不是必需路径</h3>
+          <p>
+            observation 默认 synthetic compression，所以没有 provider key 也能检索。
+            summarize/consolidate/graph extract 等高级归纳才需要 LLM provider。
+          </p>
+        </div>
+        <div class="tile">
+          <h3>Skill 只是行为提示</h3>
+          <p>
+            skills 帮 agent 知道何时调用工具；真正能力在 MCP/REST/functions。
+            删除某个 skill 不等于删除底层 MCP prompt 或 function。
+          </p>
+        </div>
+        <div class="tile">
+          <h3>Docs 要跟着表面变</h3>
+          <p>
+            这个 fork 的 AGENTS 规则要求 MCP tool、REST endpoint、版本和 skill 数量跨 README、manifest、测试同步。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="sources">
+      <div class="section-head">
+        <h2>源码锚点</h2>
+        <p>
+          这份图解基于下面这些文件。想继续深挖时，建议按这个顺序读，而不是从 README 的功能列表开始。
+        </p>
+      </div>
+
+      <ol class="source-list">
+        <li><a href="../AGENTS.md">AGENTS.md</a>：iii-engine 架构约束、同步规则、当前 stats。</li>
+        <li><a href="../src/state/schema.ts">src/state/schema.ts</a>：KV scopes、ID 生成、相似度函数。</li>
+        <li><a href="../src/types.ts">src/types.ts</a>：Session、RawObservation、CompressedObservation、Memory、ContextBlock。
+        </li>
+        <li><a href="../src/hooks/session-start.ts">src/hooks/session-start.ts</a>：会话注册和可选 context 注入。</li>
+        <li><a href="../src/hooks/post-tool-use.ts">src/hooks/post-tool-use.ts</a>：工具结果如何进入 observe。</li>
+        <li><a href="../src/functions/observe.ts">src/functions/observe.ts</a>：脱敏、去重、raw/compressed observation、索引写入。
+        </li>
+        <li><a href="../src/functions/remember.ts">src/functions/remember.ts</a>：长期 memory 保存、版本化、supersede、索引。</li>
+        <li><a href="../src/functions/context.ts">src/functions/context.ts</a>：上下文包如何收集和裁剪。</li>
+        <li><a href="../src/functions/search.ts">src/functions/search.ts</a>：BM25 index、search 重建、fallback 到 memory。
+        </li>
+        <li><a href="../src/state/hybrid-search.ts">src/state/hybrid-search.ts</a>：BM25、vector、graph 的融合检索。</li>
+        <li><a href="../src/triggers/api.ts">src/triggers/api.ts</a>：REST endpoint 到 <span class="code">mem::*</span>
+          的桥。</li>
+        <li><a href="../src/mcp/server.ts">src/mcp/server.ts</a>：MCP tools/resources/prompts 到内部函数的桥。</li>
+        <li><a href="../src/index.ts">src/index.ts</a>：全部 functions/triggers/index persistence 的启动接线。</li>
+      </ol>
+    </section>
+
+    <footer>
+      本页面是源码阅读产物，不包含密钥、私有 URL 或运行时数据。生成日期：2026-06-07。
+    </footer>
+  </main>
+</body>
+
+</html>

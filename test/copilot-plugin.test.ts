@@ -38,7 +38,6 @@ const KNOWN_SKILL_DIRS = [
   "remember",
   "session-history",
   "forget",
-  "handoff",
   "recap",
   "commit-context",
   "commit-history",

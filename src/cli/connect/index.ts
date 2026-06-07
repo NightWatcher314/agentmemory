@@ -198,7 +198,7 @@ function summarize(
   );
   if (wiredAny) {
     p.log.info(
-      "Next: install agentmemory's 10 skills into the same agent(s) so they know when to call the tools:\n  npx skills add NightWatcher314/agentmemory -y",
+      "Next: install agentmemory's 9 skills into the same agent(s) so they know when to call the tools:\n  npx skills add NightWatcher314/agentmemory -y",
     );
   }
 
